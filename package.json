@@ -7,7 +7,13 @@
     "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["hrms", "backend", "api", "nodejs", "express"],
+  "keywords": [
+    "hrms",
+    "backend",
+    "api",
+    "nodejs",
+    "express"
+  ],
   "author": "",
   "license": "ISC",
   "description": "Backend API for HRMS Dashboard application",
