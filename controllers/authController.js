@@ -25,8 +25,16 @@ exports.login = async (req, res) => {
         if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
 
         // Create token
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        res.json({ token });
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+        res.json({ 
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Server error' });
@@ -36,12 +44,22 @@ exports.login = async (req, res) => {
 // Protect routes middleware
 exports.protect = async (req, res, next) => {
     try {
-        const token = req.headers.authorization.split(' ')[1];
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ error: 'Not authorized, token missing' });
+        }
+
+        const token = authHeader.split(' ')[1];
         if (!token) return res.status(401).json({ error: 'Not authorized, token missing' });
 
         // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = await User.findById(decoded.userId);
+        
+        if (!req.user) {
+            return res.status(401).json({ error: 'Not authorized, user not found' });
+        }
+        
         next();
     } catch (error) {
         console.error(error);
