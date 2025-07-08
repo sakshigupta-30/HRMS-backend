@@ -3,10 +3,10 @@ const mongoose = require('mongoose');
 const candidateSchema = new mongoose.Schema({
     // Personal Details
     personalDetails: {
-        firstName: { type: String, required: true, trim: true },
-        lastName: { type: String, required: true, trim: true },
-        email: { type: String, required: true, lowercase: true },
-        phone: { type: String, required: true },
+        firstName: { type: String, trim: true },
+        lastName: { type: String, trim: true },
+        email: { type: String, lowercase: true },
+        phone: { type: String },
         dateOfBirth: { type: Date },
         gender: { type: String, enum: ['Male', 'Female', 'Other'] },
         maritalStatus: { type: String, enum: ['Single', 'Married', 'Divorced', 'Widowed'] },
@@ -16,31 +16,31 @@ const candidateSchema = new mongoose.Schema({
     
     // Address Information
     address: {
-        street: { type: String, required: true },
-        city: { type: String, required: true },
-        state: { type: String, required: true },
-        country: { type: String, required: true },
-        zipCode: { type: String, required: true }
+        street: { type: String },
+        city: { type: String },
+        state: { type: String },
+        country: { type: String },
+        zipCode: { type: String }
     },
     
     // Professional Details
     professionalDetails: {
-        currentJobTitle: { type: String, required: true },
-        department: { type: String, required: true },
-        expectedSalary: { type: Number, required: true },
+        currentJobTitle: { type: String },
+        department: { type: String },
+        expectedSalary: { type: Number },
         currentSalary: { type: Number },
-        availableFrom: { type: Date, required: true },
-        employmentType: { type: String, enum: ['Full-time', 'Part-time', 'Contract', 'Internship'], required: true },
+        availableFrom: { type: Date },
+        employmentType: { type: String, enum: ['Full-time', 'Part-time', 'Contract', 'Internship'] },
         skills: [{ type: String }],
         resume: { type: String } // URL to resume file
     },
     
     // Education Details
     education: [{
-        degree: { type: String, required: true },
-        institution: { type: String, required: true },
-        fieldOfStudy: { type: String, required: true },
-        startDate: { type: Date, required: true },
+        degree: { type: String },
+        institution: { type: String },
+        fieldOfStudy: { type: String },
+        startDate: { type: Date },
         endDate: { type: Date },
         grade: { type: String },
         isCompleted: { type: Boolean, default: false }
@@ -48,9 +48,9 @@ const candidateSchema = new mongoose.Schema({
     
     // Experience Details
     experience: [{
-        company: { type: String, required: true },
-        position: { type: String, required: true },
-        startDate: { type: Date, required: true },
+        company: { type: String },
+        position: { type: String },
+        startDate: { type: Date },
         endDate: { type: Date },
         isCurrentJob: { type: Boolean, default: false },
         description: { type: String },
@@ -60,7 +60,7 @@ const candidateSchema = new mongoose.Schema({
     // Application Status
     status: {
         type: String,
-        enum: ['Applied', 'Screening', 'Interview', 'Selected', 'Rejected', 'On Hold'],
+        enum: ['Draft', 'Applied', 'Screening', 'Interview', 'Selected', 'Rejected', 'On Hold'],
         default: 'Applied'
     },
     
