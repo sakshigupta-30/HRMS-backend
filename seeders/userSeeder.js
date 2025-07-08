@@ -5,10 +5,7 @@ const User = require('../models/User');
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/hrms';
 
 // Connect to MongoDB
-mongoose.connect(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
+mongoose.connect(MONGO_URI)
 .then(() => console.log('MongoDB connected'))
 .catch(error => console.error('MongoDB connection failed:', error.message));
 

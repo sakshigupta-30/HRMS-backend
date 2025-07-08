@@ -7,10 +7,10 @@ const candidateSchema = new mongoose.Schema({
         lastName: { type: String, required: true, trim: true },
         email: { type: String, required: true, lowercase: true },
         phone: { type: String, required: true },
-        dateOfBirth: { type: Date, required: true },
-        gender: { type: String, enum: ['Male', 'Female', 'Other'], required: true },
+        dateOfBirth: { type: Date },
+        gender: { type: String, enum: ['Male', 'Female', 'Other'] },
         maritalStatus: { type: String, enum: ['Single', 'Married', 'Divorced', 'Widowed'] },
-        nationality: { type: String, required: true },
+        nationality: { type: String },
         profileImage: { type: String } // URL to profile image
     },
     

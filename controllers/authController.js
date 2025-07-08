@@ -17,8 +17,11 @@ exports.register = async (req, res) => {
 // Login user
 exports.login = async (req, res) => {
     try {
+        console.log('Login request received:', req.body);
         const { email, password } = req.body;
+        console.log('Looking for user with email:', email);
         const user = await User.findOne({ email });
+        console.log('User found:', user ? 'Yes' : 'No');
         if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
         const isMatch = await user.comparePassword(password);
