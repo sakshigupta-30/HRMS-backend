@@ -95,7 +95,6 @@ candidateSchema.pre('save', function(next) {
 });
 
 // Create indexes for better performance
-candidateSchema.index({ 'personalDetails.email': 1 });
 candidateSchema.index({ status: 1 });
 candidateSchema.index({ 'professionalDetails.department': 1 });
 candidateSchema.index({ applicationDate: -1 });
