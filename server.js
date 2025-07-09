@@ -5,26 +5,60 @@ const mongoose = require('mongoose');
 
 const app = express();
 
-// ✅ Clean CORS configuration
+// ✅ Enhanced CORS configuration for production
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:5173',
-      'https://hrms-dashboard-six.vercel.app'
-    ];
+      'https://hrms-dashboard-six.vercel.app',
+      'https://hrms-dashboard-six.vercel.app/',
+      process.env.FRONTEND_URL,
+      // Add common Vercel preview URLs
+      /^https:\/\/hrms-dashboard-.*\.vercel\.app$/,
+      // For development
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:5173'
+    ].filter(Boolean); // Remove undefined values
 
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true); // ✅ allow request
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) {
+      console.log('✅ CORS: Allowing request with no origin');
+      return callback(null, true);
+    }
+
+    console.log('🔍 CORS: Checking origin:', origin);
+    console.log('🔍 CORS: Allowed origins:', allowedOrigins);
+
+    // Check if origin matches any allowed origin
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (typeof allowedOrigin === 'string') {
+        return origin === allowedOrigin;
+      }
+      if (allowedOrigin instanceof RegExp) {
+        return allowedOrigin.test(origin);
+      }
+      return false;
+    });
+
+    if (isAllowed) {
+      console.log('✅ CORS: Origin allowed:', origin);
+      callback(null, true);
     } else {
-      callback(new Error('❌ Not allowed by CORS'));
+      console.log('❌ CORS: Origin blocked:', origin);
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
+
+// Add preflight handling for complex requests
+app.options('*', cors(corsOptions));
 
 
 // ✅ Body parsers
