@@ -5,61 +5,52 @@ const mongoose = require('mongoose');
 
 const app = express();
 
-// ✅ Enhanced CORS configuration for production
-const corsOptions = {
-  origin: function (origin, callback) {
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'https://hrms-dashboard-six.vercel.app',
-      'https://hrms-dashboard-six.vercel.app/',
-      process.env.FRONTEND_URL,
-      // Add common Vercel preview URLs
-      /^https:\/\/hrms-dashboard-.*\.vercel\.app$/,
-      // For development
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:5173'
-    ].filter(Boolean); // Remove undefined values
+// ✅ Simplified CORS configuration for production
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'https://hrms-dashboard-six.vercel.app',
+  'https://hrms-dashboard-six.vercel.app/',
+  process.env.FRONTEND_URL,
+  // For development
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173'
+].filter(Boolean);
 
-    // Allow requests with no origin (mobile apps, curl, etc.)
-    if (!origin) {
-      console.log('✅ CORS: Allowing request with no origin');
-      return callback(null, true);
-    }
-
-    console.log('🔍 CORS: Checking origin:', origin);
-    console.log('🔍 CORS: Allowed origins:', allowedOrigins);
-
-    // Check if origin matches any allowed origin
-    const isAllowed = allowedOrigins.some(allowedOrigin => {
-      if (typeof allowedOrigin === 'string') {
-        return origin === allowedOrigin;
-      }
-      if (allowedOrigin instanceof RegExp) {
-        return allowedOrigin.test(origin);
-      }
-      return false;
-    });
-
-    if (isAllowed) {
-      console.log('✅ CORS: Origin allowed:', origin);
-      callback(null, true);
-    } else {
-      console.log('❌ CORS: Origin blocked:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
-
-// Add preflight handling for complex requests
-app.options('*', cors(corsOptions));
-
+// Add CORS middleware first
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
+  console.log('🔍 CORS: Request from origin:', origin);
+  console.log('🔍 CORS: Allowed origins:', allowedOrigins);
+  
+  // Temporarily allow all origins for testing
+  res.header('Access-Control-Allow-Origin', origin || '*');
+  console.log('✅ CORS: Origin allowed (testing mode):', origin);
+  
+  // TODO: Re-enable origin checking after testing
+  // if (!origin || allowedOrigins.includes(origin) || origin.match(/^https:\/\/hrms-dashboard-.*\.vercel\.app$/)) {
+  //   res.header('Access-Control-Allow-Origin', origin || '*');
+  //   console.log('✅ CORS: Origin allowed:', origin);
+  // } else {
+  //   console.log('❌ CORS: Origin blocked:', origin);
+  //   res.header('Access-Control-Allow-Origin', 'null');
+  // }
+  
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Max-Age', '86400'); // 24 hours
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    console.log('✅ CORS: Handling preflight request');
+    res.status(200).end();
+    return;
+  }
+  
+  next();
+});
 
 // ✅ Body parsers
 app.use(express.json());
@@ -77,6 +68,15 @@ const candidateRoutes = require('./routes/candidateRoutes');
 
 app.get('/', (req, res) => {
   res.send('Welcome to HRMS Backend!');
+});
+
+// Test endpoint for CORS
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'CORS test successful!', 
+    origin: req.headers.origin,
+    timestamp: new Date().toISOString() 
+  });
 });
 
 app.use('/api/auth', authRoutes);
