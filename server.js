@@ -5,52 +5,39 @@ const mongoose = require('mongoose');
 
 const app = express();
 
-// ✅ Simplified CORS configuration for production
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:5173',
-  'https://hrms-dashboard-six.vercel.app',
-  'https://hrms-dashboard-six.vercel.app/',
-  process.env.FRONTEND_URL,
-  // For development
-  'http://127.0.0.1:3000',
-  'http://127.0.0.1:5173'
-].filter(Boolean);
-
-// Add CORS middleware first
+// ✅ Bulletproof CORS configuration
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   
-  console.log('🔍 CORS: Request from origin:', origin);
-  console.log('🔍 CORS: Allowed origins:', allowedOrigins);
+  console.log('🔍 CORS: Method:', req.method, 'Origin:', origin);
+  console.log('🔍 CORS: URL:', req.url);
   
-  // Temporarily allow all origins for testing
+  // Set CORS headers for all requests
   res.header('Access-Control-Allow-Origin', origin || '*');
-  console.log('✅ CORS: Origin allowed (testing mode):', origin);
-  
-  // TODO: Re-enable origin checking after testing
-  // if (!origin || allowedOrigins.includes(origin) || origin.match(/^https:\/\/hrms-dashboard-.*\.vercel\.app$/)) {
-  //   res.header('Access-Control-Allow-Origin', origin || '*');
-  //   console.log('✅ CORS: Origin allowed:', origin);
-  // } else {
-  //   console.log('❌ CORS: Origin blocked:', origin);
-  //   res.header('Access-Control-Allow-Origin', 'null');
-  // }
-  
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
   res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Max-Age', '86400'); // 24 hours
+  res.header('Access-Control-Max-Age', '600'); // 10 minutes
   
-  // Handle preflight requests
+  // Handle preflight requests immediately
   if (req.method === 'OPTIONS') {
-    console.log('✅ CORS: Handling preflight request');
-    res.status(200).end();
+    console.log('✅ CORS: Preflight request handled');
+    res.status(200).send();
     return;
   }
   
+  console.log('✅ CORS: Headers set for', req.method, 'request');
   next();
 });
+
+// Add additional CORS middleware as backup
+app.use(cors({
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  optionsSuccessStatus: 200
+}));
 
 // ✅ Body parsers
 app.use(express.json());
