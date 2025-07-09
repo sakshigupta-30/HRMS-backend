@@ -15,9 +15,9 @@ const corsOptions = {
     ];
 
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true); // allow
+      callback(null, true); // ✅ allow request
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error('❌ Not allowed by CORS'));
     }
   },
   credentials: true,
@@ -25,6 +25,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
 
 // ✅ Body parsers
 app.use(express.json());
