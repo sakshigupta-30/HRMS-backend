@@ -24,22 +24,13 @@ app.use((req, res, next) => {
   console.log('🔍 CORS: Request from origin:', origin);
   console.log('🔍 CORS: Allowed origins:', allowedOrigins);
   
-  // Temporarily allow all origins for testing
+  // Allow all origins for testing
   res.header('Access-Control-Allow-Origin', origin || '*');
-  console.log('✅ CORS: Origin allowed (testing mode):', origin);
-  
-  // TODO: Re-enable origin checking after testing
-  // if (!origin || allowedOrigins.includes(origin) || origin.match(/^https:\/\/hrms-dashboard-.*\.vercel\.app$/)) {
-  //   res.header('Access-Control-Allow-Origin', origin || '*');
-  //   console.log('✅ CORS: Origin allowed:', origin);
-  // } else {
-  //   console.log('❌ CORS: Origin blocked:', origin);
-  //   res.header('Access-Control-Allow-Origin', 'null');
-  // }
+  // res.header('Access-Control-Allow-Credentials', 'true'); // Temporarily disabled
+  console.log('✅ CORS: Origin allowed (testing):', origin);
   
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
-  res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Max-Age', '86400'); // 24 hours
   
   // Handle preflight requests
