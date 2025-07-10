@@ -1,41 +1,29 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');
 
 const app = express();
 
-// ✅ Simplified CORS configuration for production
+// ✅ Allowed origins
 const allowedOrigins = [
-  'http://localhost:3000',
   'http://localhost:5173',
   'https://hrms-dashboard-six.vercel.app',
-  'https://hrms-dashboard-six.vercel.app/',
-  process.env.FRONTEND_URL,
-  // For development
-  'http://127.0.0.1:3000',
-  'http://127.0.0.1:5173'
+  process.env.FRONTEND_URL
 ].filter(Boolean);
 
-// Simple CORS middleware
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  
-  console.log('🔍 CORS: Request from origin:', origin);
-  
-  // Set basic CORS headers
-  res.header('Access-Control-Allow-Origin', origin || '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
-  
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    console.log('✅ CORS: Handling preflight OPTIONS request');
-    res.status(200).end();
-    return;
-  }
-  
-  next();
-});
+// ✅ Correct CORS middleware
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.log('❌ Blocked by CORS:', origin);
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // required for Authorization headers
+}));
 
 // ✅ Body parsers
 app.use(express.json());
@@ -55,12 +43,12 @@ app.get('/', (req, res) => {
   res.send('Welcome to HRMS Backend!');
 });
 
-// Test endpoint for CORS
+// CORS test route
 app.get('/api/test', (req, res) => {
-  res.json({ 
-    message: 'CORS test successful!', 
+  res.json({
+    message: 'CORS test successful!',
     origin: req.headers.origin,
-    timestamp: new Date().toISOString() 
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -70,5 +58,5 @@ app.use('/api/candidates', candidateRoutes);
 // ✅ Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
