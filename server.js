@@ -29,11 +29,11 @@ app.use(express.json());
 // 👇 Import routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/candidates', require('./routes/candidates'));
-app.use('/api/users', require('./routes/users'));
+// app.use('/api/users', require('./routes/users'));
 
 // 👇 Connect to MongoDB and start server
 const PORT = process.env.PORT || 5000;
-mongoose.connect(process.env.MONGO_URL, {
+mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })

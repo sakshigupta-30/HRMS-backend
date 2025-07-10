@@ -1,8 +1,8 @@
 const express = require('express');
 const {
   getCandidates,
-  getCandidate,
-  createCandidate,
+  getCandidateById,
+  addCandidate,
   updateCandidate,
   deleteCandidate
 } = require('../controllers/candidateController');
@@ -15,10 +15,10 @@ router.use(protect);
 
 router.route('/')
   .get(getCandidates)
-  .post(createCandidate);
+  .post(addCandidate);
 
 router.route('/:id')
-  .get(getCandidate)
+  .get(getCandidateById)
   .put(updateCandidate)
   .delete(authorize('admin', 'hr'), deleteCandidate);
 
