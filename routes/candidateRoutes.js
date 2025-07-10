@@ -2,13 +2,13 @@ const express = require('express');
 const router = express.Router();
 
 const candidateController = require('../controllers/candidateController');
-const { protect, authorize } = require('../middleware/authMiddleware');
+const { verifyToken } = require('../middleware/authMiddleware');
 
-// ✅ Protect all candidate routes
-router.get('/', protect, candidateController.getCandidates);
-router.get('/:id', protect, candidateController.getCandidateById);
-router.post('/', protect, candidateController.addCandidate);
-router.put('/:id', protect, candidateController.updateCandidate);
-router.delete('/:id', protect, candidateController.deleteCandidate);
+// ✅ Protect all routes with verifyToken middleware
+router.get('/', verifyToken, candidateController.getCandidates);
+router.get('/:id', verifyToken, candidateController.getCandidateById);
+router.post('/', verifyToken, candidateController.addCandidate);
+router.put('/:id', verifyToken, candidateController.updateCandidate);
+router.delete('/:id', verifyToken, candidateController.deleteCandidate);
 
 module.exports = router;
