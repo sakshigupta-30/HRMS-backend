@@ -5,14 +5,20 @@ const cors = require('cors');
 
 const app = express();
 
-// ✅ Allowed origins
+// ✅ Log incoming origins
+app.use((req, res, next) => {
+  console.log('🌐 Incoming Origin:', req.headers.origin);
+  next();
+});
+
+// ✅ Allowed origins list
 const allowedOrigins = [
   'http://localhost:5173',
   'https://hrms-dashboard-six.vercel.app',
   process.env.FRONTEND_URL
-].filter(Boolean);
+].filter(Boolean); // Remove undefined
 
-// ✅ Correct CORS middleware
+// ✅ Simple CORS setup with preflight support
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -22,8 +28,11 @@ app.use(cors({
       return callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true, // required for Authorization headers
+  credentials: true,
 }));
+
+// ✅ Handle preflight (OPTIONS) requests
+app.options('*', cors());
 
 // ✅ Body parsers
 app.use(express.json());
@@ -43,7 +52,7 @@ app.get('/', (req, res) => {
   res.send('Welcome to HRMS Backend!');
 });
 
-// CORS test route
+// ✅ CORS test endpoint
 app.get('/api/test', (req, res) => {
   res.json({
     message: 'CORS test successful!',
@@ -52,6 +61,7 @@ app.get('/api/test', (req, res) => {
   });
 });
 
+// ✅ Mount routes
 app.use('/api/auth', authRoutes);
 app.use('/api/candidates', candidateRoutes);
 

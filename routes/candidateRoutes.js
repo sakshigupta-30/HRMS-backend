@@ -1,24 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { addCandidate, getCandidates, getCandidateById, updateCandidate, deleteCandidate } = require('../controllers/candidateController');
-const { protect } = require('../controllers/authController');
 
-// All routes are protected (require authentication)
-router.use(protect);
+const candidateController = require('../controllers/candidateController');
+const { protect, authorize } = require('../middleware/authMiddleware');
 
-// Add a new candidate
-router.post('/', addCandidate);
-
-// Get all candidates
-router.get('/', getCandidates);
-
-// Get a single candidate
-router.get('/:id', getCandidateById);
-
-// Update a candidate
-router.put('/:id', updateCandidate);
-
-// Delete a candidate
-router.delete('/:id', deleteCandidate);
+// ✅ Protect all candidate routes
+router.get('/', protect, candidateController.getCandidates);
+router.get('/:id', protect, candidateController.getCandidateById);
+router.post('/', protect, candidateController.addCandidate);
+router.put('/:id', protect, candidateController.updateCandidate);
+router.delete('/:id', protect, candidateController.deleteCandidate);
 
 module.exports = router;
