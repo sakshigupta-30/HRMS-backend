@@ -9,27 +9,26 @@ exports.register = async (req, res) => {
         await user.save();
         res.status(201).json({ message: 'User registered successfully' });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Server error'});
+        console.error('Register error:', error);
+        res.status(500).json({ error: 'Server error' });
     }
 };
 
 // Login user
 exports.login = async (req, res) => {
     try {
-        console.log('Login request received:', req.body);
         const { email, password } = req.body;
-        console.log('Looking for user with email:', email);
+
         const user = await User.findOne({ email });
-        console.log('User found:', user ? 'Yes' : 'No');
         if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
         const isMatch = await user.comparePassword(password);
         if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
 
-        // Create token
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
-        res.json({ 
+        // Create JWT token
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+
+        res.json({
             token,
             user: {
                 id: user._id,
@@ -39,33 +38,34 @@ exports.login = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error(error);
+        console.error('Login error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 };
 
-// Protect routes middleware
+// Middleware to protect routes
 exports.protect = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
+
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({ error: 'Not authorized, token missing' });
         }
 
         const token = authHeader.split(' ')[1];
-        if (!token) return res.status(401).json({ error: 'Not authorized, token missing' });
 
         // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = await User.findById(decoded.userId);
-        
-        if (!req.user) {
+        const user = await User.findById(decoded.id);
+
+        if (!user) {
             return res.status(401).json({ error: 'Not authorized, user not found' });
         }
-        
+
+        req.user = user;
         next();
     } catch (error) {
-        console.error(error);
+        console.error('Auth middleware error:', error);
         res.status(401).json({ error: 'Not authorized, token invalid' });
     }
 };
