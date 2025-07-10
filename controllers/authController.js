@@ -69,3 +69,20 @@ exports.protect = async (req, res, next) => {
         res.status(401).json({ error: 'Not authorized, token invalid' });
     }
 };
+
+// Get current user profile
+exports.getProfile = async (req, res) => {
+    try {
+        res.json({
+            user: {
+                id: req.user._id,
+                name: req.user.name,
+                email: req.user.email,
+                role: req.user.role
+            }
+        });
+    } catch (error) {
+        console.error('Get profile error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
