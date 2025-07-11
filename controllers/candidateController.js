@@ -94,3 +94,44 @@ exports.deleteCandidate = async (req, res) => {
         res.status(500).json({ error: 'Unable to delete candidate. Please try again later.' });
     }
 };
+
+// Update candidate status & promote to employee
+exports.updateCandidateStatus = async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    const candidate = await Candidate.findById(id);
+    if (!candidate) return res.status(404).json({ error: 'Candidate not found' });
+
+    candidate.status = status;
+
+    // Promote to employee if selected
+    if (status === 'Selected' && !candidate.isEmployee) {
+      candidate.isEmployee = true;
+
+      // Generate unique empId like EMP001
+      const count = await Candidate.countDocuments({ isEmployee: true });
+      candidate.empId = `EMP${(count + 1).toString().padStart(3, '0')}`;
+    }
+
+    await candidate.save();
+    res.status(200).json({ message: 'Status updated successfully', candidate });
+  } catch (error) {
+    console.error('Error updating status:', error);
+    res.status(500).json({ error: 'Failed to update status' });
+  }
+};
+
+
+// Get all employees (candidates with isEmployee: true)
+exports.getEmployees = async (req, res) => {
+  try {
+    const employees = await Candidate.find({ isEmployee: true }).sort({ empId: 1 });
+    res.status(200).json(employees);
+  } catch (error) {
+    console.error('Error fetching employees:', error);
+    res.status(500).json({ error: 'Failed to fetch employees' });
+  }
+};
+

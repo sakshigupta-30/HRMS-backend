@@ -4,7 +4,9 @@ const {
   getCandidateById,
   addCandidate,
   updateCandidate,
-  deleteCandidate
+  deleteCandidate,
+  updateCandidateStatus,       // ✅ NEW
+  getEmployees                 // ✅ NEW
 } = require('../controllers/candidateController');
 const { protect, authorize } = require('../middleware/auth');
 
@@ -21,5 +23,9 @@ router.route('/:id')
   .get(getCandidateById)
   .put(updateCandidate)
   .delete(authorize('admin', 'hr'), deleteCandidate);
+
+// ✅ Add these routes at the end
+router.get('/employees', getEmployees);
+router.put('/:id/status', updateCandidateStatus);
 
 module.exports = router;
