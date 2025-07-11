@@ -23,7 +23,7 @@ app.use(cors({
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   // ✅ No cookies used for auth, so this should be false
-  credentials: false
+  credentials: true
 }));
 
 app.use(express.json());
