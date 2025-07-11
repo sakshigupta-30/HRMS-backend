@@ -2,6 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const cookieParser = require('cookie-parser'); // ✅ Add at top
+
 
 dotenv.config();
 const app = express();
@@ -24,6 +26,8 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
+
+app.use(cookieParser()); // ✅ Add after CORS
 
 app.use(express.json());
 
