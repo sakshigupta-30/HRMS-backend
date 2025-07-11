@@ -6,41 +6,51 @@ const cors = require('cors');
 dotenv.config();
 const app = express();
 
-// ✅ CORS Fix – allow Vercel frontend
+// ✅ Allowed origins
 const allowedOrigins = [
-  'http://localhost:3000', // local React frontend
-  'http://localhost:5173', 
-  'https://hrms-dashboard-six.vercel.app' // deployed frontend
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'https://hrms-dashboard-six.vercel.app'
 ];
 
+// ✅ CORS middleware
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
     if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
     }
-    callback(new Error('Not allowed by CORS'));
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 }));
 
+// ✅ Allow preflight for all routes
+app.options('*', cors());
+
+// ✅ Body parser
 app.use(express.json());
 
-// 👇 Import routes
+// ✅ Debug origin logs (optional)
+app.use((req, res, next) => {
+  console.log('Request origin:', req.headers.origin);
+  next();
+});
+
+// ✅ Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/candidates', require('./routes/candidates'));
-// app.use('/api/users', require('./routes/users'));
 
-// 👇 Connect to MongoDB and start server
-
+// ✅ Mongo + server startup
 const PORT = process.env.PORT || 5000;
+
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`Backend server is running on port ${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
     });
   })
   .catch(err => {
-    console.error('DB connection error:', err);
+    console.error('❌ DB connection error:', err);
   });
