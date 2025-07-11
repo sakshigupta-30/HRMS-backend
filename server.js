@@ -2,17 +2,15 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const cookieParser = require('cookie-parser'); // ✅ Add at top
-
 
 dotenv.config();
 const app = express();
 
-// ✅ CORS Fix – allow Vercel frontend
+// ✅ CORS Setup – allow frontend origins without credentials
 const allowedOrigins = [
-  'http://localhost:3000', // local React frontend
-  'http://localhost:5173', 
-  'https://hrms-dashboard-six.vercel.app' // deployed frontend
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'https://hrms-dashboard-six.vercel.app'
 ];
 
 app.use(cors({
@@ -24,20 +22,17 @@ app.use(cors({
     callback(new Error('Not allowed by CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
+  // ✅ No cookies used for auth, so this should be false
+  credentials: false
 }));
-
-app.use(cookieParser()); // ✅ Add after CORS
 
 app.use(express.json());
 
-// 👇 Import routes
+// 👇 API routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/candidates', require('./routes/candidates'));
-// app.use('/api/users', require('./routes/users'));
 
-// 👇 Connect to MongoDB and start server
-
+// 👇 MongoDB connection and server start
 const PORT = process.env.PORT || 5000;
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {

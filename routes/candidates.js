@@ -5,16 +5,21 @@ const {
   addCandidate,
   updateCandidate,
   deleteCandidate,
-  updateCandidateStatus,       // ✅ NEW
-  getEmployees                 // ✅ NEW
+  updateCandidateStatus,
+  getEmployees
 } = require('../controllers/candidateController');
 const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-// All routes require authentication
+// ✅ All routes require authentication
 router.use(protect);
 
+// ✅ Special routes should come before param-based routes
+router.get('/employees', getEmployees); // 👈 this must come before `/:id`
+router.put('/:id/status', updateCandidateStatus);
+
+// ✅ Main routes
 router.route('/')
   .get(getCandidates)
   .post(addCandidate);
@@ -23,9 +28,5 @@ router.route('/:id')
   .get(getCandidateById)
   .put(updateCandidate)
   .delete(authorize('admin', 'hr'), deleteCandidate);
-
-// ✅ Add these routes at the end
-router.get('/employees', getEmployees);
-router.put('/:id/status', updateCandidateStatus);
 
 module.exports = router;
