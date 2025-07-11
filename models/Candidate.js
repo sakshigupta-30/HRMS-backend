@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const candidateSchema = new mongoose.Schema({
+
+     isEmployee: { type: Boolean, default: false },
+    empId: { type: String, unique: true, sparse: true },
+
     // Personal Details
     personalDetails: {
         firstName: { type: String, trim: true },
