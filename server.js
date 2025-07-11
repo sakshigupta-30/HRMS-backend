@@ -9,6 +9,7 @@ const app = express();
 // ✅ CORS Fix – allow Vercel frontend
 const allowedOrigins = [
   'http://localhost:3000', // local React frontend
+  'http://localhost:5173', 
   'https://hrms-dashboard-six.vercel.app' // deployed frontend
 ];
 
@@ -32,16 +33,14 @@ app.use('/api/candidates', require('./routes/candidates'));
 // app.use('/api/users', require('./routes/users'));
 
 // 👇 Connect to MongoDB and start server
+
 const PORT = process.env.PORT || 5000;
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => {
-  app.listen(PORT, () => {
-    console.log(`Backend server is running on port ${PORT}`);
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Backend server is running on port ${PORT}`);
+    });
+  })
+  .catch(err => {
+    console.error('DB connection error:', err);
   });
-})
-.catch(err => {
-  console.error('DB connection error:', err);
-});
