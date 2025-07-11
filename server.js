@@ -1,12 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const cors = require('cors');
 
 dotenv.config();
 const app = express();
 
-// ✅ CORS Setup – allow frontend origins without credentials
+const cors = require('cors');
+
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
@@ -14,16 +14,14 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
+  origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
     }
-    callback(new Error('Not allowed by CORS'));
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  // ✅ No cookies used for auth, so this should be false
-  credentials: true
+  credentials: true, // ✅ required if using withCredentials on frontend
 }));
 
 app.use(express.json());

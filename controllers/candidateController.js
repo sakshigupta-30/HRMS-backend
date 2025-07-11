@@ -3,9 +3,19 @@ const Candidate = require('../models/Candidate');
 // Add a new candidate
 exports.addCandidate = async (req, res) => {
   try {
-    const candidate = new Candidate(req.body);
+    const data = req.body;
+
+    // Promote directly if status is 'Selected'
+    if (data.status === 'Selected') {
+      const count = await Candidate.countDocuments({ isEmployee: true });
+      data.isEmployee = true;
+      data.empId = `EMP${(count + 1).toString().padStart(3, '0')}`;
+    }
+
+    const candidate = new Candidate(data);
     await candidate.save();
-    res.status(201).json({ message: 'Candidate added successfully' });
+
+    res.status(201).json({ message: 'Candidate added successfully', candidate });
   } catch (error) {
     console.error('Error adding candidate:', error);
 
@@ -111,7 +121,6 @@ exports.updateCandidateStatus = async (req, res) => {
     if (status === 'Selected' && !candidate.isEmployee) {
       candidate.isEmployee = true;
 
-      // Generate a unique employee ID like EMP001
       const count = await Candidate.countDocuments({ isEmployee: true });
       candidate.empId = `EMP${(count + 1).toString().padStart(3, '0')}`;
     }
