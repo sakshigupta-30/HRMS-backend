@@ -5,7 +5,11 @@ const candidateSchema = new mongoose.Schema({
      isEmployee: { type: Boolean, default: false },
     empId: { type: String, unique: true, sparse: true },
 
-    client: { type: String },
+    client: {
+    name: { type: String, default: 'No client assigned' },
+    location: { type: String, default: '' }
+    },
+
 
     // Personal Details
     personalDetails: {
