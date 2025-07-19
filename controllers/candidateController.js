@@ -44,11 +44,27 @@ exports.addCandidate = async (req, res) => {
   }
 };
 
-// Get all candidates
+// Get all candidates WITH PAGINATION
 exports.getCandidates = async (req, res) => {
   try {
-    const candidates = await Candidate.find({}).sort({ applicationDate: -1 });
-    res.json(candidates);
+    // Get page and limit from query params, with default values
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 20; // Default to 20 candidates per page
+    const skip = (page - 1) * limit;
+
+    // Fetch a "page" of candidates and the total count
+    const candidates = await Candidate.find({})
+      .sort({ applicationDate: -1 })
+      .skip(skip)
+      .limit(limit);
+      
+    const totalCandidates = await Candidate.countDocuments();
+
+    res.json({
+      candidates,
+      totalPages: Math.ceil(totalCandidates / limit),
+      currentPage: page,
+    });
   } catch (error) {
     console.error('Error fetching candidates:', error);
     res.status(500).json({ error: 'Server error' });
