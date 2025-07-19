@@ -5,6 +5,10 @@ exports.addCandidate = async (req, res) => {
   try {
     const data = req.body;
 
+    if (!data.client) {
+      console.warn("No client assigned for this employee.");
+    }
+
     // Promote directly if status is 'Selected'
     if (data.status === 'Selected') {
       const count = await Candidate.countDocuments({ isEmployee: true });
