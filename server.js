@@ -30,6 +30,10 @@ app.use(express.json());
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/candidates', require('./routes/candidates'));
 
+app.get("/", (req, res) => {
+  res.send("HRMS backend is running");
+});
+
 
 
 // 👇 MongoDB connection and server start
