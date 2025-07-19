@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
+
 dotenv.config();
 const app = express();
 
@@ -29,6 +30,7 @@ app.use(express.json());
 // 👇 API routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/candidates', require('./routes/candidates'));
+app.use('/api/salary-slips', require('./routes/salarySlipRoutes'));
 
 app.get("/", (req, res) => {
   res.send("HRMS backend is running");
