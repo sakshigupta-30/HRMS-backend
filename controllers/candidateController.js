@@ -5,6 +5,15 @@ exports.addCandidate = async (req, res) => {
   try {
     const data = req.body;
 
+    // Clean up deprecated fields
+    if (data.professionalDetails?.department) {
+      delete data.professionalDetails.department;
+    }
+    if (data.professionalDetails?.currentJobTitle) {
+      data.professionalDetails.designation = data.professionalDetails.currentJobTitle;
+      delete data.professionalDetails.currentJobTitle;
+    }
+
     if (!data.client) {
       console.warn("No client assigned for this employee.");
     }
@@ -47,17 +56,15 @@ exports.addCandidate = async (req, res) => {
 // Get all candidates WITH PAGINATION
 exports.getCandidates = async (req, res) => {
   try {
-    // Get page and limit from query params, with default values
     const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 20; // Default to 20 candidates per page
+    const limit = parseInt(req.query.limit, 10) || 20;
     const skip = (page - 1) * limit;
 
-    // Fetch a "page" of candidates and the total count
     const candidates = await Candidate.find({})
       .sort({ applicationDate: -1 })
       .skip(skip)
       .limit(limit);
-      
+
     const totalCandidates = await Candidate.countDocuments();
 
     res.json({
@@ -86,7 +93,18 @@ exports.getCandidateById = async (req, res) => {
 // Update a candidate
 exports.updateCandidate = async (req, res) => {
   try {
-    const candidate = await Candidate.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const data = req.body;
+
+    // Clean up deprecated fields
+    if (data.professionalDetails?.department) {
+      delete data.professionalDetails.department;
+    }
+    if (data.professionalDetails?.currentJobTitle) {
+      data.professionalDetails.designation = data.professionalDetails.currentJobTitle;
+      delete data.professionalDetails.currentJobTitle;
+    }
+
+    const candidate = await Candidate.findByIdAndUpdate(req.params.id, data, { new: true });
     if (!candidate) return res.status(404).json({ error: 'Candidate not found' });
 
     res.json({ message: 'Candidate updated successfully', candidate });
@@ -137,10 +155,8 @@ exports.updateCandidateStatus = async (req, res) => {
 
     candidate.status = status;
 
-    // Promote to employee if status is "Selected"
     if (status === 'Selected' && !candidate.isEmployee) {
       candidate.isEmployee = true;
-
       const count = await Candidate.countDocuments({ isEmployee: true });
       candidate.empId = `EMP${(count + 1).toString().padStart(3, '0')}`;
     }

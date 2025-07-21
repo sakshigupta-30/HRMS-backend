@@ -4,7 +4,7 @@ const candidateSchema = new mongoose.Schema({
     isEmployee: { type: Boolean, default: false },
     empId: { type: String, unique: true, sparse: true },
     client: {
-        name: { type: String, default: 'No client assigned' },
+        name: { type: String, default: 'Raymoon' }, // ✅ updated default
         location: { type: String, default: '' }
     },
     // Personal Details
@@ -29,8 +29,7 @@ const candidateSchema = new mongoose.Schema({
     },
     // Professional Details
     professionalDetails: {
-        currentJobTitle: { type: String },
-        department: { type: String },
+        designation: { type: String, required: true, enum: ['Picker&Packar', 'SG', 'HK'],trim: true},
         expectedSalary: { type: Number },
         currentSalary: { type: Number },
         availableFrom: { type: Date },
@@ -91,10 +90,9 @@ candidateSchema.pre('save', function(next) {
     next();
 });
 
-// Create indexes for better performance
+// Indexes
 candidateSchema.index({ status: 1 });
-candidateSchema.index({ 'professionalDetails.department': 1 });
 candidateSchema.index({ applicationDate: -1 });
-candidateSchema.index({ isEmployee: 1 }); // ✅ ADDED THIS NEW INDEX
+candidateSchema.index({ isEmployee: 1 });
 
 module.exports = mongoose.model('Candidate', candidateSchema);
