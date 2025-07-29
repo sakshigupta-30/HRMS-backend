@@ -1,4 +1,95 @@
+const XLSX = require('xlsx');
 const Candidate = require('../models/Candidate');
+
+exports.bulkUploadCandidates = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    // Parse the uploaded Excel file buffer
+    const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+    let successCount = 0;
+    let errors = [];
+
+    const validDesignations = ['Picker&Packar', 'SG', 'HK'];
+
+    for (const [index, row] of rows.entries()) {
+      // Validate required fields
+      if (!row['NAME'] || !row['Designation']) {
+        errors.push({ row: index + 2, error: 'Missing NAME or Designation' }); // +2 accounts for header
+        continue;
+      }
+
+      // Parse name
+      const [firstName, ...rest] = row['NAME'].split(' ');
+      const lastName = rest.join(' ');
+
+      const designation = row['Designation'].trim();
+      if (!validDesignations.includes(designation)) {
+        errors.push({ row: index + 2, error: `Invalid Designation: ${designation}` });
+        continue;
+      }
+
+      let availableFromDate = null;
+      if (row['DoJ']) {
+        const parsedDate = new Date(row['DoJ']);
+        if (!isNaN(parsedDate)) {
+          availableFromDate = parsedDate;
+        } else {
+          errors.push({ row: index + 2, error: `Invalid DoJ date format` });
+          continue;
+        }
+      }
+
+      const payload = {
+        personalDetails: {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+        },
+        professionalDetails: {
+          designation,
+          availableFrom: availableFromDate,
+          salary: {
+            basic: parseFloat(row['Basic']) || 0,
+            hra: parseFloat(row['HRA']) || 0,
+            retention: parseFloat(row['4 Hrs Retention']) || 0,
+            otherAllowances: parseFloat(row['Other Allowances']) || 0,
+            actualSalary: parseFloat(row['Actual Salary']) || 0,
+          },
+        },
+        client: {
+          name: row['Client Name'] || '',
+          location: row['Location'] || '',
+        },
+        code: row['CODE'] || '',
+        status: 'Selected',  // Must match enum
+        isEmployee: true,
+      };
+
+      try {
+        const candidate = new Candidate(payload);
+        await candidate.save();
+        successCount++;
+      } catch (err) {
+        errors.push({ row: index + 2, error: err.message });
+      }
+    }
+
+    res.status(200).json({
+      message: `Bulk upload complete, successfully added ${successCount} candidates.`,
+      errors,
+    });
+  } catch (err) {
+    console.error('Bulk upload error:', err);
+    res.status(500).json({ error: 'Failed to process bulk upload' });
+  }
+};
+
 
 // Add a new candidate
 exports.addCandidate = async (req, res) => {
@@ -56,18 +147,27 @@ exports.addCandidate = async (req, res) => {
 };
 
 // Get all candidates WITH PAGINATION
+// Get all candidates WITH PAGINATION and filtering support
 exports.getCandidates = async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 20;
     const skip = (page - 1) * limit;
 
-    const candidates = await Candidate.find({})
+    // Build query filter object
+    const filters = {};
+    if (req.query.isEmployee !== undefined) {
+      // Query params are strings, convert to boolean
+      filters.isEmployee = req.query.isEmployee === 'true';
+    }
+    // Add more filters here as needed
+
+    const candidates = await Candidate.find(filters)
       .sort({ applicationDate: -1 })
       .skip(skip)
       .limit(limit);
 
-    const totalCandidates = await Candidate.countDocuments();
+    const totalCandidates = await Candidate.countDocuments(filters);
 
     res.json({
       candidates,
@@ -79,6 +179,7 @@ exports.getCandidates = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
 
 // Get a single candidate by ID
 exports.getCandidateById = async (req, res) => {
