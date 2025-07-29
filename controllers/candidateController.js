@@ -25,6 +25,7 @@ exports.addCandidate = async (req, res) => {
       data.empId = `EMP${(count + 1).toString().padStart(3, '0')}`;
     }
 
+    // Create and save candidate
     const candidate = new Candidate(data);
     await candidate.save();
 
@@ -37,6 +38,7 @@ exports.addCandidate = async (req, res) => {
       let errorMessage = `This ${field} already exists. Please use a different value.`;
       if (field.includes('email')) errorMessage = 'A candidate with this email already exists.';
       else if (field.includes('phone')) errorMessage = 'A candidate with this phone number already exists.';
+      else if (field === 'code') errorMessage = 'This code already exists. Please use a different code.';
       return res.status(400).json({ error: errorMessage });
     }
 
@@ -78,7 +80,7 @@ exports.getCandidates = async (req, res) => {
   }
 };
 
-// Get a single candidate
+// Get a single candidate by ID
 exports.getCandidateById = async (req, res) => {
   try {
     const candidate = await Candidate.findById(req.params.id);
@@ -116,6 +118,7 @@ exports.updateCandidate = async (req, res) => {
       let errorMessage = `This ${field} already exists. Please use a different value.`;
       if (field.includes('email')) errorMessage = 'A candidate with this email already exists.';
       else if (field.includes('phone')) errorMessage = 'A candidate with this phone number already exists.';
+      else if (field === 'code') errorMessage = 'This code already exists. Please use a different code.';
       return res.status(400).json({ error: errorMessage });
     }
 
@@ -169,9 +172,10 @@ exports.updateCandidateStatus = async (req, res) => {
   }
 };
 
-// Get all employees (i.e. candidates who became employees)
+// Get all employees (i.e., candidates who became employees)
 exports.getEmployees = async (req, res) => {
   try {
+    // Optional: add pagination if needed in future
     const employees = await Candidate.find({ isEmployee: true }).sort({ empId: 1 });
     res.status(200).json(employees);
   } catch (error) {
