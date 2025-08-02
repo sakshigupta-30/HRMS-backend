@@ -1,5 +1,7 @@
 const XLSX = require('xlsx');
 const Candidate = require('../models/Candidate');
+const mongoose = require('mongoose');
+
 
 exports.bulkUploadCandidates = async (req, res) => {
   try {
@@ -239,14 +241,34 @@ exports.updateCandidate = async (req, res) => {
 // Delete a candidate
 exports.deleteCandidate = async (req, res) => {
   try {
-    const candidate = await Candidate.findByIdAndDelete(req.params.id);
-    if (!candidate) return res.status(404).json({ error: 'Candidate not found. It may have already been deleted.' });
+    const id = req.params.id;
+
+    // If it's a "temp-" code, delete by `code`
+    if (id.startsWith('temp-')) {
+      const deletedCandidate = await Candidate.findOneAndDelete({ code: id });
+      if (!deletedCandidate) {
+        return res.status(404).json({ error: 'Candidate not found with temp code' });
+      }
+      return res.json({ message: 'Temp candidate deleted successfully' });
+    }
+
+    // Otherwise treat it as MongoDB _id
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid candidate ID format' });
+    }
+
+    const candidate = await Candidate.findByIdAndDelete(id);
+    if (!candidate) {
+      return res.status(404).json({ error: 'Candidate not found. It may have already been deleted.' });
+    }
+
     res.json({ message: 'Candidate deleted successfully' });
   } catch (error) {
     console.error('Error deleting candidate:', error);
     res.status(500).json({ error: 'Unable to delete candidate. Please try again later.' });
   }
 };
+
 
 // Update candidate status and promote to employee
 exports.updateCandidateStatus = async (req, res) => {
