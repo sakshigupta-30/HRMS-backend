@@ -2,6 +2,21 @@ const XLSX = require('xlsx');
 const Candidate = require('../models/Candidate');
 const mongoose = require('mongoose');
 
+// Helper to generate next employee code (RAY001, RAY002, ...)
+const getNextEmployeeCode = async () => {
+  const lastCandidate = await Candidate.findOne({
+    isEmployee: true,
+    code: { $regex: /^RAY\d+$/ }
+  }).sort({ code: -1 }).lean();
+
+  if (!lastCandidate || !lastCandidate.code) {
+    return "RAY001";
+  }
+
+  const lastNum = parseInt(lastCandidate.code.replace("RAY", ""));
+  const nextNum = (lastNum || 0) + 1;
+  return `RAY${String(nextNum).padStart(3, "0")}`;
+};
 
 exports.bulkUploadCandidates = async (req, res) => {
   try {
@@ -68,7 +83,7 @@ exports.bulkUploadCandidates = async (req, res) => {
           name: row['Client Name'] || '',
           location: row['Location'] || '',
         },
-        code: row['CODE'] || '',
+        code: row['CODE'] || await getNextEmployeeCode(),
         status: 'Selected',  // Must match enum
         isEmployee: true,
       };
@@ -112,11 +127,16 @@ exports.addCandidate = async (req, res) => {
     }
 
     // Promote directly if status is 'Selected'
-    if (data.status === 'Selected') {
-      const count = await Candidate.countDocuments({ isEmployee: true });
-      data.isEmployee = true;
-      data.empId = `EMP${(count + 1).toString().padStart(3, '0')}`;
-    }
+  if (data.status === 'Selected') {
+  const count = await Candidate.countDocuments({ isEmployee: true });
+  data.isEmployee = true;
+  data.empId = `EMP${(count + 1).toString().padStart(3, '0')}`;
+
+  // Assign next code if not present
+  if (!data.code) {
+    data.code = await getNextEmployeeCode();
+  }
+}
 
     // Create and save candidate
     const candidate = new Candidate(data);
