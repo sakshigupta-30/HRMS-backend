@@ -18,13 +18,13 @@ const getNextEmployeeCode = async () => {
   return `RAY${String(nextNum).padStart(3, "0")}`;
 };
 
+// Bulk upload candidates from Excel file
 exports.bulkUploadCandidates = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Parse the uploaded Excel file buffer
     const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
@@ -36,17 +36,15 @@ exports.bulkUploadCandidates = async (req, res) => {
     const validDesignations = ['Picker&Packar', 'SG', 'HK'];
 
     for (const [index, row] of rows.entries()) {
-      // Validate required fields
       if (!row['NAME'] || !row['Designation']) {
-        errors.push({ row: index + 2, error: 'Missing NAME or Designation' }); // +2 accounts for header
+        errors.push({ row: index + 2, error: 'Missing NAME or Designation' });
         continue;
       }
 
-      // Parse name
       const [firstName, ...rest] = row['NAME'].split(' ');
       const lastName = rest.join(' ');
-
       const designation = row['Designation'].trim();
+
       if (!validDesignations.includes(designation)) {
         errors.push({ row: index + 2, error: `Invalid Designation: ${designation}` });
         continue;
@@ -58,7 +56,7 @@ exports.bulkUploadCandidates = async (req, res) => {
         if (!isNaN(parsedDate)) {
           availableFromDate = parsedDate;
         } else {
-          errors.push({ row: index + 2, error: `Invalid DoJ date format` });
+          errors.push({ row: index + 2, error: 'Invalid DoJ date format' });
           continue;
         }
       }
@@ -84,7 +82,7 @@ exports.bulkUploadCandidates = async (req, res) => {
           location: row['Location'] || '',
         },
         code: row['CODE'] || await getNextEmployeeCode(),
-        status: 'Selected',  // Must match enum
+        status: 'Selected',
         isEmployee: true,
       };
 
@@ -107,13 +105,11 @@ exports.bulkUploadCandidates = async (req, res) => {
   }
 };
 
-
-// Add a new candidate
+// Add a new candidate manually
 exports.addCandidate = async (req, res) => {
   try {
     const data = req.body;
 
-    // Clean up deprecated fields
     if (data.professionalDetails?.department) {
       delete data.professionalDetails.department;
     }
@@ -126,19 +122,16 @@ exports.addCandidate = async (req, res) => {
       console.warn("No client assigned for this employee.");
     }
 
-    // Promote directly if status is 'Selected'
-  if (data.status === 'Selected') {
-  const count = await Candidate.countDocuments({ isEmployee: true });
-  data.isEmployee = true;
-  data.empId = `EMP${(count + 1).toString().padStart(3, '0')}`;
+    if (data.status === 'Selected') {
+      const count = await Candidate.countDocuments({ isEmployee: true });
+      data.isEmployee = true;
+      data.empId = `EMP${(count + 1).toString().padStart(3, '0')}`;
 
-  // Assign next code if not present
-  if (!data.code) {
-    data.code = await getNextEmployeeCode();
-  }
-}
+      if (!data.code) {
+        data.code = await getNextEmployeeCode();
+      }
+    }
 
-    // Create and save candidate
     const candidate = new Candidate(data);
     await candidate.save();
 
@@ -168,24 +161,20 @@ exports.addCandidate = async (req, res) => {
   }
 };
 
-// Get all candidates WITH PAGINATION
-// Get all candidates WITH PAGINATION and filtering support
+// Get all candidates with pagination and optional filters
 exports.getCandidates = async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 20;
     const skip = (page - 1) * limit;
 
-    // Build query filter object
     const filters = {};
     if (req.query.isEmployee !== undefined) {
-      // Query params are strings, convert to boolean
       filters.isEmployee = req.query.isEmployee === 'true';
     }
-    // Add more filters here as needed
 
     const candidates = await Candidate.find(filters)
-      .sort({code: 1}) // Sort by code
+      .sort({ code: 1 })
       .skip(skip)
       .limit(limit);
 
@@ -202,8 +191,7 @@ exports.getCandidates = async (req, res) => {
   }
 };
 
-
-// Get a single candidate by ID
+// Get candidate by ID
 exports.getCandidateById = async (req, res) => {
   try {
     const candidate = await Candidate.findById(req.params.id);
@@ -220,7 +208,6 @@ exports.updateCandidate = async (req, res) => {
   try {
     const data = req.body;
 
-    // Clean up deprecated fields
     if (data.professionalDetails?.department) {
       delete data.professionalDetails.department;
     }
@@ -258,12 +245,11 @@ exports.updateCandidate = async (req, res) => {
   }
 };
 
-// Delete a candidate
+// Delete candidate by ID or temp-code
 exports.deleteCandidate = async (req, res) => {
   try {
     const id = req.params.id;
 
-    // If it's a "temp-" code, delete by `code`
     if (id.startsWith('temp-')) {
       const deletedCandidate = await Candidate.findOneAndDelete({ code: id });
       if (!deletedCandidate) {
@@ -272,7 +258,6 @@ exports.deleteCandidate = async (req, res) => {
       return res.json({ message: 'Temp candidate deleted successfully' });
     }
 
-    // Otherwise treat it as MongoDB _id
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: 'Invalid candidate ID format' });
     }
@@ -288,7 +273,6 @@ exports.deleteCandidate = async (req, res) => {
     res.status(500).json({ error: 'Unable to delete candidate. Please try again later.' });
   }
 };
-
 
 // Update candidate status and promote to employee
 exports.updateCandidateStatus = async (req, res) => {
@@ -315,10 +299,9 @@ exports.updateCandidateStatus = async (req, res) => {
   }
 };
 
-// Get all employees (i.e., candidates who became employees)
+// Get all employees
 exports.getEmployees = async (req, res) => {
   try {
-    // Optional: add pagination if needed in future
     const employees = await Candidate.find({ isEmployee: true }).sort({ code: 1 });
     res.status(200).json(employees);
   } catch (error) {
