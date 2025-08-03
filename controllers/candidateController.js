@@ -24,6 +24,7 @@ exports.bulkUploadCandidates = async (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
+    // Parse the uploaded Excel file buffer
     const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
@@ -31,29 +32,21 @@ exports.bulkUploadCandidates = async (req, res) => {
 
     let successCount = 0;
     let errors = [];
+
     const validDesignations = ['Picker&Packar', 'SG', 'HK'];
 
-    // Get last used code once, then increment locally to reduce DB calls
-    let lastCodeNum = 0;
-    const lastCandidate = await Candidate.findOne({
-      isEmployee: true,
-      code: { $regex: /^RAY\d+$/ }
-    }).sort({ code: -1 }).lean();
-
-    if (lastCandidate?.code) {
-      lastCodeNum = parseInt(lastCandidate.code.replace('RAY', '')) || 0;
-    }
-
     for (const [index, row] of rows.entries()) {
+      // Validate required fields
       if (!row['NAME'] || !row['Designation']) {
-        errors.push({ row: index + 2, error: 'Missing NAME or Designation' });
+        errors.push({ row: index + 2, error: 'Missing NAME or Designation' }); // +2 accounts for header
         continue;
       }
 
+      // Parse name
       const [firstName, ...rest] = row['NAME'].split(' ');
       const lastName = rest.join(' ');
-      const designation = row['Designation'].trim();
 
+      const designation = row['Designation'].trim();
       if (!validDesignations.includes(designation)) {
         errors.push({ row: index + 2, error: `Invalid Designation: ${designation}` });
         continue;
@@ -65,13 +58,10 @@ exports.bulkUploadCandidates = async (req, res) => {
         if (!isNaN(parsedDate)) {
           availableFromDate = parsedDate;
         } else {
-          errors.push({ row: index + 2, error: 'Invalid DoJ date format' });
+          errors.push({ row: index + 2, error: `Invalid DoJ date format` });
           continue;
         }
       }
-
-      // Generate code if not provided, increment local counter
-      const generatedCode = row['CODE'] || `RAY${String(++lastCodeNum).padStart(3, '0')}`;
 
       const payload = {
         personalDetails: {
@@ -93,8 +83,8 @@ exports.bulkUploadCandidates = async (req, res) => {
           name: row['Client Name'] || '',
           location: row['Location'] || '',
         },
-        code: generatedCode,
-        status: 'Selected',
+        code: row['CODE'] || await getNextEmployeeCode(),
+        status: 'Selected',  // Must match enum
         isEmployee: true,
       };
 
@@ -117,11 +107,13 @@ exports.bulkUploadCandidates = async (req, res) => {
   }
 };
 
+
 // Add a new candidate
 exports.addCandidate = async (req, res) => {
   try {
     const data = req.body;
 
+    // Clean up deprecated fields
     if (data.professionalDetails?.department) {
       delete data.professionalDetails.department;
     }
@@ -134,15 +126,19 @@ exports.addCandidate = async (req, res) => {
       console.warn("No client assigned for this employee.");
     }
 
-    if (data.status === 'Selected') {
-      const count = await Candidate.countDocuments({ isEmployee: true });
-      data.isEmployee = true;
-      data.empId = `EMP${(count + 1).toString().padStart(3, '0')}`;
-      if (!data.code) {
-        data.code = await getNextEmployeeCode();
-      }
-    }
+    // Promote directly if status is 'Selected'
+  if (data.status === 'Selected') {
+  const count = await Candidate.countDocuments({ isEmployee: true });
+  data.isEmployee = true;
+  data.empId = `EMP${(count + 1).toString().padStart(3, '0')}`;
 
+  // Assign next code if not present
+  if (!data.code) {
+    data.code = await getNextEmployeeCode();
+  }
+}
+
+    // Create and save candidate
     const candidate = new Candidate(data);
     await candidate.save();
 
@@ -173,19 +169,23 @@ exports.addCandidate = async (req, res) => {
 };
 
 // Get all candidates WITH PAGINATION
+// Get all candidates WITH PAGINATION and filtering support
 exports.getCandidates = async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 20;
     const skip = (page - 1) * limit;
 
+    // Build query filter object
     const filters = {};
     if (req.query.isEmployee !== undefined) {
+      // Query params are strings, convert to boolean
       filters.isEmployee = req.query.isEmployee === 'true';
     }
+    // Add more filters here as needed
 
     const candidates = await Candidate.find(filters)
-      .sort({ code: 1 }) // Oldest employee first by code ascending
+      .sort({code: 1}) // Sort by code
       .skip(skip)
       .limit(limit);
 
