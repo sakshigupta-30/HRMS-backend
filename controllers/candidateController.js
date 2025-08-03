@@ -175,6 +175,7 @@ exports.getCandidates = async (req, res) => {
 
     const candidates = await Candidate.find(filters)
       .sort({ code: 1 })
+
       .skip(skip)
       .limit(limit);
 
