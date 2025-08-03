@@ -185,7 +185,7 @@ exports.getCandidates = async (req, res) => {
     // Add more filters here as needed
 
     const candidates = await Candidate.find(filters)
-      .sort({ applicationDate: -1 })
+      .sort({code: 1}) // Sort by code
       .skip(skip)
       .limit(limit);
 
@@ -319,7 +319,7 @@ exports.updateCandidateStatus = async (req, res) => {
 exports.getEmployees = async (req, res) => {
   try {
     // Optional: add pagination if needed in future
-    const employees = await Candidate.find({ isEmployee: true }).sort({ empId: 1 });
+    const employees = await Candidate.find({ isEmployee: true }).sort({ code: 1 });
     res.status(200).json(employees);
   } catch (error) {
     console.error('Error fetching employees:', error);
