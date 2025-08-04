@@ -30,7 +30,8 @@ app.use(express.json());
 // 👇 API routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/candidates', require('./routes/candidates'));
-app.use('/api/salary-slips', require('./routes/salarySlipRoutes'));
+app.use('/api/salarysummary', require('./routes/salarySlipRoutes'));
+
 
 app.get("/", (req, res) => {
   res.send("HRMS backend is running");
