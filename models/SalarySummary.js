@@ -1,16 +1,15 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const SalarySummarySchema = new mongoose.Schema({
-  employeeId: String,
-  name: String,
-  absent: Number,
-  weekOff: Number,
-  holiday: Number,
-  leave: Number,
-  compOff: Number,
-  workingOnHoliday: Number,
-  totalPaidDays: Number,
-  ot: Number,
-}, { timestamps: true });
+const SalarySummarySchema = new mongoose.Schema(
+  {
+    employeeCode: { type: String, required: true },
+    month: { type: String, required: true }, // Format: "2025-08"
+    salaryDetails: { type: Object, required: true }
+  },
+  { timestamps: true }
+);
 
-module.exports = mongoose.model('SalarySummary', SalarySummarySchema);
+// Unique per employee per month
+SalarySummarySchema.index({ employeeCode: 1, month: 1 }, { unique: true });
+
+module.exports = mongoose.model("SalarySummary", SalarySummarySchema);

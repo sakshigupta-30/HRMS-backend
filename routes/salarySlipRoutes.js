@@ -1,14 +1,8 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const SalarySummary = require("../models/SalarySummary");
+const salarySummaryController = require('../controllers/salarySummaryController');
 
-router.post("/upload", async (req, res) => {
-  try {
-    await SalarySummary.insertMany(req.body); // Expecting summary array
-    res.status(200).json({ message: "Summary uploaded successfully." });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.post('/salarysummary', salarySummaryController.saveSalarySummary);
+router.get('/salarysummary', salarySummaryController.getSalarySummary);
 
 module.exports = router;
