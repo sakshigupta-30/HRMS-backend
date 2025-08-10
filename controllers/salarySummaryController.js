@@ -1,62 +1,66 @@
+// controllers/salarySummaryController.js
 const SalarySummary = require("../models/SalarySummary");
 
-// Save or update salary slip for one employee and month
+/**
+ * @desc Save salary summaries from Excel upload
+ * @route POST /api/salary-summary
+ */
 exports.saveSalarySummary = async (req, res) => {
   try {
-    let { employeeCode, month, salaryDetails } = req.body;
+    const { summaries } = req.body;
+    // summaries should be an array: [{ employeeCode, month, salaryDetails }, ...]
 
-    // Trim strings
-    employeeCode = employeeCode?.trim();
-    month = month?.trim();
-
-    // Validate required fields
-    if (!employeeCode || !month || !salaryDetails) {
-      return res.status(400).json({ error: "Missing required fields" });
+    if (!summaries || !Array.isArray(summaries)) {
+      return res.status(400).json({ message: "Invalid or missing data" });
     }
 
-    // Validate month format YYYY-MM
-    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
-      return res.status(400).json({ error: "Invalid month format. Use YYYY-MM." });
+    let savedRecords = [];
+
+    for (let summary of summaries) {
+      const { employeeCode, month, salaryDetails } = summary;
+
+      if (!employeeCode || !month || !salaryDetails) {
+        continue; // skip invalid rows
+      }
+
+      // Upsert (insert or update if exists)
+      const record = await SalarySummary.findOneAndUpdate(
+        { employeeCode, month },
+        { salaryDetails },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      );
+
+      savedRecords.push(record);
     }
 
-    const summary = await SalarySummary.findOneAndUpdate(
-      { employeeCode, month },
-      { employeeCode, month, salaryDetails },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    );
-
-    res.json({
-      message: "Salary summary saved successfully",
-      data: summary
+    res.status(200).json({
+      message: "Salary summaries saved successfully",
+      data: savedRecords
     });
-  } catch (err) {
-    res.status(500).json({
-      error: "Failed to save salary summary",
-      detail: err.message
-    });
+  } catch (error) {
+    console.error("Error saving salary summaries:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
+/**
+ * @desc Get salary summaries for a specific month or all
+ * @route GET /api/salary-summary?month=2025-08
+ */
 exports.getSalarySummary = async (req, res) => {
   try {
-    const { employeeCode, month } = req.query;
+    const { month } = req.query;
+    let filter = {};
 
-    if (!employeeCode || !month) {
-      return res.status(400).json({ error: "Missing employeeCode or month" });
+    if (month) {
+      filter.month = month; // Format: YYYY-MM
     }
 
-    // Validate month format
-    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
-      return res.status(400).json({ error: "Invalid month format. Use YYYY-MM." });
-    }
+    const summaries = await SalarySummary.find(filter).sort({ employeeCode: 1 });
 
-    const summary = await SalarySummary.findOne({ employeeCode, month });
-    if (!summary) {
-      return res.status(404).json({ error: "Not found" });
-    }
-
-    res.json(summary);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch summary" });
+    res.status(200).json(summaries);
+  } catch (error) {
+    console.error("Error fetching salary summaries:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
