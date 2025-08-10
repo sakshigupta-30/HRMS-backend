@@ -2,8 +2,12 @@ const mongoose = require("mongoose");
 
 const SalarySummarySchema = new mongoose.Schema(
   {
-    employeeCode: { type: String, required: true },
-    month: { type: String, required: true }, // Format: "2025-08"
+    employeeCode: { type: String, required: true, trim: true },
+    month: { 
+      type: String, 
+      required: true, 
+      match: [/^\d{4}-(0[1-9]|1[0-2])$/, "Month must be in YYYY-MM format"] 
+    },
     salaryDetails: { type: Object, required: true }
   },
   { timestamps: true }
