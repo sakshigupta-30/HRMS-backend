@@ -114,9 +114,6 @@ exports.addCandidate = async (req, res) => {
   try {
     const data = req.body;
 
-    if (data.professionalDetails?.department) {
-      delete data.professionalDetails.department;
-    }
     if (data.professionalDetails?.currentJobTitle) {
       data.professionalDetails.designation = data.professionalDetails.currentJobTitle;
       delete data.professionalDetails.currentJobTitle;
@@ -136,7 +133,7 @@ exports.addCandidate = async (req, res) => {
       }
     }
 
-    const candidate = new Candidate(data);
+    const candidate = new Candidate({...data, professionalDetails:{...data.professionalDetails, agency:data.agency}});
     await candidate.save();
 
     res.status(201).json({ message: 'Candidate added successfully', candidate });
