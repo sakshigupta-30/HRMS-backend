@@ -43,7 +43,9 @@ exports.bulkUploadCandidates = async (req, res) => {
 
       const [firstName, ...rest] = row['NAME'].split(' ');
       const lastName = rest.join(' ');
+      const phone = row['Phone'].trim();
       const designation = row['Designation'].trim();
+      const agency = row['Agency'].trim();
 
       if (!validDesignations.includes(designation)) {
         errors.push({ row: index + 2, error: `Invalid Designation: ${designation}` });
@@ -65,9 +67,11 @@ exports.bulkUploadCandidates = async (req, res) => {
         personalDetails: {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
+          phone
         },
         professionalDetails: {
           designation,
+          agency,
           availableFrom: availableFromDate,
           salary: {
             basic: parseFloat(row['Basic']) || 0,

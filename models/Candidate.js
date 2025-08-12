@@ -42,6 +42,7 @@ const candidateSchema = new mongoose.Schema({
     employmentType: { type: String, enum: ['Full-time', 'Part-time', 'Contract', 'Internship'] },
     skills: [{ type: String }],
     resume: { type: String },
+    agency: { type: String },
 
     // Added detailed salary nested object
     salary: {
