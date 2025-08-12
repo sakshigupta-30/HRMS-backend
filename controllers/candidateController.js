@@ -175,7 +175,6 @@ exports.getCandidates = async (req, res) => {
 
     const candidates = await Candidate.find(filters)
       .sort({ code: 1 })
-
       .skip(skip)
       .limit(limit);
 
@@ -183,6 +182,7 @@ exports.getCandidates = async (req, res) => {
 
     res.json({
       candidates,
+      totalCandidates, // ✅ Added
       totalPages: Math.ceil(totalCandidates / limit),
       currentPage: page,
     });
@@ -191,6 +191,7 @@ exports.getCandidates = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
 
 // Get candidate by ID
 exports.getCandidateById = async (req, res) => {
