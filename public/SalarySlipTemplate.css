@@ -1,0 +1,185 @@
+.salary-container {
+  border: 2px solid #222;
+  max-width: 900px;
+  margin: 20px auto;
+  box-shadow: 0 0 4px rgba(60, 60, 60, 0.12);
+  background: #fff;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto;
+  gap: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  width: 100%;
+  overflow-x: hidden;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.salary-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1.5px solid #b7b7b7;
+  padding: 15px 0 10px 0;
+}
+
+.salary-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.company-name {
+  font-size: 22px;
+  font-weight: 600;
+  color: #093063;
+  margin-bottom: 4px;
+}
+
+.company-address {
+  font-size: 11px;
+  color: #1d407e;
+}
+
+.company-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.company-logo-img {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+}
+
+.salary-title-row {
+  text-align: center;
+  border-bottom: 1.5px solid #b7b7b7;
+  padding: 20px 0;
+}
+
+.salary-title-text {
+  font-weight: bold;
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.salary-subtitle-text {
+  font-size: 12px;
+  color: #555;
+}
+
+.salary-emp-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  border-bottom: 1.5px solid #b7b7b7;
+  padding: 10px 0;
+  font-size: 14px;
+}
+
+.salary-emp-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: space-between;
+}
+
+.salary-main-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  padding: 20px 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-sizing: border-box;
+  width: 100%;
+  font-size: 12px;
+}
+
+/* Each of 5 vertical columns */
+.main-grid-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 12px;
+  position: relative;
+  border-right: 1.5px solid #999;
+  min-width: 0;
+}
+
+.main-grid-column:last-child {
+  border-right: none;
+}
+
+/* Label-value on same line with spacing (aligned left & right) */
+.salary-main-grid .main-grid-column > div,
+.salary-main-grid .main-grid-column > strong {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  white-space: nowrap;
+  gap: 12px;
+  word-break: break-word;
+}
+
+/* Let label expand and push value to right */
+.salary-main-grid .main-grid-column > div > :first-child,
+.salary-main-grid .main-grid-column > strong > :first-child {
+  flex: 1;
+}
+
+/* Prevent amount wrapping */
+.salary-main-grid .main-grid-column > div > :last-child,
+.salary-main-grid .main-grid-column > strong > :last-child {
+  white-space: nowrap;
+}
+
+.salary-footer-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 15px 0;
+  font-weight: 600;
+  font-size: 13px;
+  gap: 10px;
+}
+
+.footer-item {
+  border-top: 1.5px solid #b7b7b7;
+  padding-top: 10px;
+}
+
+.footer-item-deductions{
+  border-top: 1.5px solid #b7b7b7;
+  padding-top: 10px;
+  text-align: center;
+}
+
+.footer-net-salary {
+  border-top: 1.5px solid #b7b7b7;
+  padding-top: 10px;
+  font-weight: bold;
+  color: #1d407e;
+  text-align: right;
+}
+
+.signature-box {
+  border: 1px solid #999;
+  height: 60px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-style: italic;
+  font-size: 11px;
+  color: #999;
+  padding-left: 6px;
+}
+
+.salary-note {
+  margin-top: 10px;
+  font-size: 10px;
+  font-style: italic;
+  color: #555;
+}

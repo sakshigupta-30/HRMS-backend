@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Salary Slip</title>
+    <style>
+        .salary-container {
+            border: 2px solid #222;
+            max-width: 900px;
+            margin: 20px auto;
+            box-shadow: 0 0 4px rgba(60, 60, 60, 0.12);
+            background: #fff;
+            display: grid;
+            grid-template-rows: auto auto auto 1fr auto;
+            gap: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            width: 100%;
+            overflow-x: hidden;
+            padding: 0 16px;
+            box-sizing: border-box;
+        }
+
+        .salary-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1.5px solid #b7b7b7;
+            padding: 18px 0 10px 0;
+        }
+
+        .salary-header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .company-name {
+            font-size: 25px;
+            font-weight: 600;
+            color: #093063;
+            margin-bottom: 4px;
+        }
+
+        .company-address {
+            font-size: 13px;
+            color: #1d407e;
+        }
+
+        .company-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .company-logo-img {
+            height: 60px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .salary-title-row {
+            text-align: center;
+            border-bottom: 1.5px solid #b7b7b7;
+            padding: 20px 0;
+        }
+
+        .salary-title-text {
+            font-weight: bold;
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+
+        .salary-subtitle-text {
+            font-size: 14px;
+            color: #555;
+        }
+
+        .salary-emp-info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            border-bottom: 1.5px solid #b7b7b7;
+            padding: 10px 0;
+            font-size: 14px;
+        }
+
+        .salary-emp-column {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            justify-content: space-between;
+        }
+
+        .salary-main-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0;
+            padding: 20px 0;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            box-sizing: border-box;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        /* Each of 5 vertical columns */
+        .main-grid-column {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 0 12px;
+            position: relative;
+            border-right: 1.5px solid #999;
+            min-width: 0;
+        }
+
+        .main-grid-column:last-child {
+            border-right: none;
+        }
+
+        /* Label-value on same line with spacing (aligned left & right) */
+        .salary-main-grid .main-grid-column>div,
+        .salary-main-grid .main-grid-column>strong {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            white-space: nowrap;
+            gap: 12px;
+            word-break: break-word;
+        }
+
+        /* Let label expand and push value to right */
+        .salary-main-grid .main-grid-column>div> :first-child,
+        .salary-main-grid .main-grid-column>strong> :first-child {
+            flex: 1;
+        }
+
+        /* Prevent amount wrapping */
+        .salary-main-grid .main-grid-column>div> :last-child,
+        .salary-main-grid .main-grid-column>strong> :last-child {
+            white-space: nowrap;
+        }
+
+        .salary-footer-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            padding: 15px 0;
+            font-weight: 600;
+            font-size: 15px;
+            gap: 10px;
+        }
+
+        .footer-item {
+            border-top: 1.5px solid #b7b7b7;
+            padding-top: 10px;
+        }
+
+        .footer-item-deductions {
+            border-top: 1.5px solid #b7b7b7;
+            padding-top: 10px;
+            text-align: center;
+        }
+
+        .footer-net-salary {
+            border-top: 1.5px solid #b7b7b7;
+            padding-top: 10px;
+            font-weight: bold;
+            color: #1d407e;
+            text-align: right;
+        }
+
+        .signature-box {
+            border: 1px solid #999;
+            height: 60px;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: italic;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .salary-note {
+            margin-top: 10px;
+            font-size: 11px;
+            font-style: italic;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="salary-container">
+        <!-- Header -->
+        <div class="salary-header-row">
+            <div class="salary-header-left">
+                <div class="company-name">Raymoon Services Private Limited</div>
+                <div class="company-address">
+                    DLF Corporate Greens, Unit no. 807, 8th floor, sec 74A, Gurgaon 122004
+                </div>
+            </div>
+            <div class="company-logo">
+                <img src="https://hrms-dashboard-six.vercel.app/assets/logo-9a4af12d.png" alt="Company Logo" class="company-logo-img" />
+            </div>
+        </div>
+        <!-- Title -->
+        <div class="salary-title-row">
+            <div class="salary-title-text">Salary Slip</div>
+            <div class="salary-subtitle-text">
+                Salary / Wages Advice for the Month: {{MONTH_YEAR}}
+            </div>
+        </div>
+        <!-- Employee Info -->
+        <div class="salary-emp-info-grid">
+            <div class="salary-emp-column">
+                <div>Emp Code: {{EMPLOYEE_CODE}}</div>
+                <div>Emp Name: {{EMPLOYEE_NAME}}</div>
+                <div>F/H Name: -</div>
+            </div>
+            <div class="salary-emp-column">
+                <div>Designation: {{DESIGNATION}}</div>
+                <div>Location: Gurgaon-FC5</div>
+                <div>DOJ: {{DOJ}}</div>
+            </div>
+            <div class="salary-emp-column">
+                <div>PF / UAN No: {{PF_UAN}}</div>
+                <div>ESIC No: {{ESIC_NO}}</div>
+                <div>Bank A/C No: {{BANK_AC}}</div>
+            </div>
+        </div>
+        <!-- Main Grid -->
+        <div class="salary-main-grid">
+            <!-- Column 1 – Rate of Wages -->
+            <div class="main-grid-column">
+                <strong>Rate of Salary / Wages</strong>
+                <div>Basic: ₹{{BASIC}}</div>
+                <div>HRA: ₹{{HRA}}</div>
+                <div>Retention: ₹{{RETENTION}}</div>
+                <div>Other Allowances: ₹{{OTHER_ALLOWANCES}}</div>
+            </div>
+            <!-- Column 2 – Earnings -->
+            <div class="main-grid-column">
+                <strong>Earnings</strong>
+                <div>Earned Basic: ₹{{EARNED_BASIC}}</div>
+                <div>Earned HRA: ₹{{EARNED_HRA}}</div>
+                <div>Earned Retention: ₹{{EARNED_RETENTION}}</div>
+                <div>Earned OT: ₹{{EARNED_OT}}</div>
+                <div>Earned Extra Duty: ₹{{EARNED_EXTRA_DUTY}}</div>
+                <div>Earned Allowances: ₹{{EARNED_OTHER_ALLOW}}</div>
+                {{#if ATTENDANCE_BONUS}}
+                <div>Attendance Bonus: ₹{{ATTENDANCE_BONUS}}</div>
+                {{/if}}
+                <strong>Total Earnings: ₹{{EARNED_GROSS_PAY}}</strong>
+            </div>
+            <!-- Column 3 – Deductions -->
+            <div class="main-grid-column">
+                <strong>Deductions</strong>
+                <div>PF (12%): ₹{{EMP_PF}}</div>
+                <div>ESI (0.75%): ₹{{EMP_ESI}}</div>
+                <div>LWF: ₹{{LWF}}</div>
+                <div>Other Deductions: ₹{{OTHER_DEDUCTIONS}}</div>
+                <strong>Total Deduction: ₹{{TOTAL_DEDUCTIONS}}</strong>
+            </div>
+            <!-- Column 4 – Attendance -->
+            <div class="main-grid-column">
+                <strong>Attendance / Leave</strong>
+                <div>Days of Month: {{TOTAL_DAYS}}</div>
+                <div>Paid Days: {{TOTAL_PAID_DAYS}}</div>
+                <div>OT Hrs: {{OT_HOURS}}</div>
+            </div>
+            <!-- Column 5 – Signature & Payment -->
+            <div class="main-grid-column">
+                <strong>Payment & Signature</strong>
+                <div>Mode of Payment: {{PAYMENT_MODE}}</div>
+                <div>Net Pay: ₹{{NET_PAY}}</div>
+                <div class="signature-box">Signature of Employee</div>
+                <div class="salary-note">This is a computer-generated slip.</div>
+            </div>
+        </div>
+        <!-- Footer -->
+        <div class="salary-footer-row">
+            <div class="footer-item">
+                Gross: ₹{{EARNED_GROSS_PAY}}
+            </div>
+            <div class="footer-item-deductions">
+                Total Deduction: ₹{{TOTAL_DEDUCTIONS}}
+            </div>
+            <div class="footer-net-salary">
+                Net Salary: ₹{{NET_PAY}}
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

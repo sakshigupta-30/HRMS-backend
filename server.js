@@ -31,6 +31,7 @@ app.use(express.json());
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/candidates', require('./routes/candidates'));
 app.use('/api/salarysummary', require('./routes/salarySlipRoutes'));
+app.use('/api/salarylip', require('./routes/salarySlip'));
 // app.use('/api/salary-slips', require('./routes/salarySlipRoutes'));
 
 app.get("/", (req, res) => {
