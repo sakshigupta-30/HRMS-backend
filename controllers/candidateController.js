@@ -108,17 +108,16 @@ exports.bulkUploadCandidates = async (req, res) => {
     res.status(500).json({ error: 'Failed to process bulk upload' });
   }
 };
-
 // Add a new candidate manually
 exports.addCandidate = async (req, res) => {
   try {
     const data = req.body;
-
     if (data.professionalDetails?.currentJobTitle) {
       data.professionalDetails.designation = data.professionalDetails.currentJobTitle;
       delete data.professionalDetails.currentJobTitle;
     }
-
+    if (!data.professionalDetails) data.professionalDetails = {};
+    data.professionalDetails.agency = data.professionalDetails.agency || '';
     if (!data.client) {
       console.warn("No client assigned for this employee.");
     }
@@ -132,8 +131,11 @@ exports.addCandidate = async (req, res) => {
         data.code = await getNextEmployeeCode();
       }
     }
-
-    const candidate = new Candidate({...data, professionalDetails:{...data.professionalDetails, agency:data.agency}});
+    const existing = await Candidate.findOne({ 'personalDetails.phone': data.personalDetails.phone });
+    if (existing) {
+      return res.status(400).json({ error: 'A candidate with this phone number already exists.' });
+    }
+    const candidate = new Candidate({ ...data, professionalDetails: { ...data.professionalDetails, agency: data.professionalDetails.agency } });
     await candidate.save();
 
     res.status(201).json({ message: 'Candidate added successfully', candidate });

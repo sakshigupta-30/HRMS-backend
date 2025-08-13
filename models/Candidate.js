@@ -16,7 +16,7 @@ const candidateSchema = new mongoose.Schema({
     firstName: { type: String, trim: true },
     lastName: { type: String, trim: true },
     email: { type: String, lowercase: true },
-    phone: { type: String , unique:true},
+    phone: { type: String, index: true, unique: true},
     dateOfBirth: { type: Date },
     gender: { type: String, enum: ['Male', 'Female', 'Other'] },
     maritalStatus: { type: String, enum: ['Single', 'Married', 'Divorced', 'Widowed'] },
