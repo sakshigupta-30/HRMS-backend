@@ -51,5 +51,19 @@ exports.getSalarySummariesByMonth = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch salary summaries" });
   }
 };
+// Get all salary summaries for a given month
+exports.getSalarySummariesByCandidate = async (req, res) => {
+  try {
+    const { employeeCode } = req.query;
+    if (!employeeCode) {
+      return res.status(400).json({ error: "Missing Employee Code" });
+    }
+
+    const summaries = await SalarySummary.find({ employeeCode });
+    res.json(summaries);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch salary summaries" });
+  }
+};
 
 // ...existing code...

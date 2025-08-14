@@ -4,13 +4,18 @@ const fs = require("fs");
 const SalarySummary = require("../models/SalarySummary");
 const Candidate = require("../models/Candidate");
 const generateSalarySlipPDF = async (req, res) => {
-  const { phone, month, year } = req.query;
+  const { phone, month, year, employeeCode } = req.query;
 
-  if (!phone || !month || !year) {
+  if ((!phone && !employeeCode) || !month || !year) {
     return res.status(400).json({ error: "phone, month, and year are required" });
   }
-
-  const employeeData = await Candidate.findOne({ "personalDetails.phone": phone });
+  let employeeData;
+  if (employeeCode) {
+    employeeData = await Candidate.findOne({ code: employeeCode });
+  }
+  else {
+    employeeData = await Candidate.findOne({ "personalDetails.phone": phone });
+  }
   if (!employeeData) {
     return res.status(404).json({ error: "Employee not found" });
   }
@@ -27,8 +32,7 @@ const generateSalarySlipPDF = async (req, res) => {
     const employee = {
       ...employeeData.toObject(),
       ...salary.salaryDetails, // flatten salaryDetails fields to root
-    }; // Pass employee object from client
-
+    }; 
     // Function to format currency
     const formatAmount = (val) =>
       isNaN(val) || val === null ? "₹0" : `₹${Math.round(val)}`;
@@ -69,15 +73,15 @@ ${fs.readFileSync(path.join(process.cwd(), "public", "SalarySlipTemplate.css"), 
   <!-- Employee Info -->
   <div class="salary-emp-info-grid">
     <div class="salary-emp-column">
-      <div>Emp Code: ${employee["Employee Code"]}</div>
+      <div>Emp Code: ${employee.code}</div>
       <div>Emp Name: ${employee.Name}</div>
       <div>F/H Name: -</div>
     </div>
     <div class="salary-emp-column">
-      <div>Designation: ${employee.Designation}</div>
-      <div>Location: Gurgaon-FC5</div>
-      <div>DOJ: ${employee["DOJ"] ?? "-"}</div>
-    </div>
+    <div>Designation: ${employee.Designation}</div>
+    <div>Location: Gurgaon-FC5</div>
+    <div>DOJ: ${employee.availableFrom ? employee.availableFrom.toISOString().slice(0,10) : "-"}</div>
+  </div>
     <div class="salary-emp-column">
       <div>PF / UAN No: ${employee["PF/UAN"] ?? "-"}</div>
       <div>ESIC No: ${employee["ESIC No"] ?? "-"}</div>
@@ -163,7 +167,7 @@ ${fs.readFileSync(path.join(process.cwd(), "public", "SalarySlipTemplate.css"), 
     res.send(pdfBuffer);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error generating PDF" });
+    res.status(500).json({ message: "Error generating PDF", ...error });
   }
 };
 module.exports = { generateSalarySlipPDF };

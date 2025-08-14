@@ -5,5 +5,6 @@ const salarySummaryController = require('../controllers/salarySummaryController'
 router.post('/', salarySummaryController.saveSalarySummary);
 router.get('/', salarySummaryController.getSalarySummary);
 router.get('/all', salarySummaryController.getSalarySummariesByMonth);
+router.get('/candidate', salarySummaryController.getSalarySummariesByCandidate);
 
 module.exports = router;
