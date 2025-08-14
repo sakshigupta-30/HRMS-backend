@@ -3,6 +3,11 @@ const puppeteer = require("puppeteer");
 const fs = require("fs");
 const SalarySummary = require("../models/SalarySummary");
 const Candidate = require("../models/Candidate");
+const salarySlipStyles = fs.readFileSync(
+  path.join(__dirname, "SalarySlipTemplate.css"),
+  "utf-8"
+);
+
 const generateSalarySlipPDF = async (req, res) => {
   const { phone, month, year, employeeCode } = req.query;
 
@@ -32,7 +37,7 @@ const generateSalarySlipPDF = async (req, res) => {
     const employee = {
       ...employeeData.toObject(),
       ...salary.salaryDetails, // flatten salaryDetails fields to root
-    }; 
+    };
     // Function to format currency
     const formatAmount = (val) =>
       isNaN(val) || val === null ? "₹0" : `₹${Math.round(val)}`;
@@ -43,9 +48,7 @@ const generateSalarySlipPDF = async (req, res) => {
 <html>
 <head>
 <meta charset="UTF-8" />
-<style>
-${fs.readFileSync(path.join(process.cwd(), "public", "SalarySlipTemplate.css"), "utf-8")}
-</style>
+<style>${salarySlipStyles}</style>
 </head>
 <body>
 <div class="salary-container">
@@ -80,7 +83,7 @@ ${fs.readFileSync(path.join(process.cwd(), "public", "SalarySlipTemplate.css"), 
     <div class="salary-emp-column">
     <div>Designation: ${employee.Designation}</div>
     <div>Location: Gurgaon-FC5</div>
-    <div>DOJ: ${employee.availableFrom ? employee.availableFrom.toISOString().slice(0,10) : "-"}</div>
+    <div>DOJ: ${employee.availableFrom ? employee.availableFrom.toISOString().slice(0, 10) : "-"}</div>
   </div>
     <div class="salary-emp-column">
       <div>PF / UAN No: ${employee["PF/UAN"] ?? "-"}</div>
