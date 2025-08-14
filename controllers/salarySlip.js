@@ -1,8 +1,9 @@
 const path = require("path");
-const puppeteer = require("puppeteer");
 const fs = require("fs");
+const pdf = require("html-pdf-node");
 const SalarySummary = require("../models/SalarySummary");
 const Candidate = require("../models/Candidate");
+
 const salarySlipStyles = fs.readFileSync(
   path.join(__dirname, "SalarySlipTemplate.css"),
   "utf-8"
@@ -14,11 +15,11 @@ const generateSalarySlipPDF = async (req, res) => {
   if ((!phone && !employeeCode) || !month || !year) {
     return res.status(400).json({ error: "phone, month, and year are required" });
   }
+
   let employeeData;
   if (employeeCode) {
     employeeData = await Candidate.findOne({ code: employeeCode });
-  }
-  else {
+  } else {
     employeeData = await Candidate.findOne({ "personalDetails.phone": phone });
   }
   if (!employeeData) {
@@ -33,16 +34,16 @@ const generateSalarySlipPDF = async (req, res) => {
   if (!salary) {
     return res.status(404).json({ error: "Salary slip not found for this month" });
   }
+
   try {
     const employee = {
       ...employeeData.toObject(),
-      ...salary.salaryDetails, // flatten salaryDetails fields to root
+      ...salary.salaryDetails,
     };
-    // Function to format currency
+
     const formatAmount = (val) =>
       isNaN(val) || val === null ? "₹0" : `₹${Math.round(val)}`;
 
-    // Build HTML with inline CSS (taken from your SalarySlipTemplate.css)
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -81,10 +82,10 @@ const generateSalarySlipPDF = async (req, res) => {
       <div>F/H Name: -</div>
     </div>
     <div class="salary-emp-column">
-    <div>Designation: ${employee.Designation}</div>
-    <div>Location: Gurgaon-FC5</div>
-    <div>DOJ: ${employee.availableFrom ? employee.availableFrom.toISOString().slice(0, 10) : "-"}</div>
-  </div>
+      <div>Designation: ${employee.Designation}</div>
+      <div>Location: Gurgaon-FC5</div>
+      <div>DOJ: ${employee.availableFrom ? employee.availableFrom.toISOString().slice(0, 10) : "-"}</div>
+    </div>
     <div class="salary-emp-column">
       <div>PF / UAN No: ${employee["PF/UAN"] ?? "-"}</div>
       <div>ESIC No: ${employee["ESIC No"] ?? "-"}</div>
@@ -150,27 +151,23 @@ const generateSalarySlipPDF = async (req, res) => {
 </html>
 `;
 
-    // Launch Puppeteer
-    const browser = await puppeteer.launch({ headless: "new" });
-    const page = await browser.newPage();
-    await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+    // Convert HTML to PDF without Puppeteer
+    const file = { content: htmlContent };
+    const options = { format: "A4", printBackground: true };
 
-    const pdfBuffer = await page.pdf({
-      format: "A4",
-      printBackground: true
-    });
+    const pdfBuffer = await pdf.generatePdf(file, options);
 
-    await browser.close();
     const pdfFileName = `${employee.code || "EMP"}_${employee.Name || ""}_${month}_${year}_SalarySlip.pdf`;
     res.set({
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename=${pdfFileName}`,
+      "Content-Disposition": `attachment; filename=${pdfFileName}`,
     });
 
     res.send(pdfBuffer);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error generating PDF", ...error, err: error.message });
+    res.status(500).json({ message: "Error generating PDF", err: error.message });
   }
 };
+
 module.exports = { generateSalarySlipPDF };
