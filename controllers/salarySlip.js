@@ -4,34 +4,37 @@ const fs = require("fs");
 const SalarySummary = require("../models/SalarySummary");
 const Candidate = require("../models/Candidate");
 const generateSalarySlipPDF = async (req, res) => {
-    const { phone, month, year } = req.query;
+  const { phone, month, year } = req.query;
 
-    if (!phone || !month || !year) {
-        return res.status(400).json({ error: "phone, month, and year are required" });
-    }
+  if (!phone || !month || !year) {
+    return res.status(400).json({ error: "phone, month, and year are required" });
+  }
 
-    const employeeData = await Candidate.findOne({ "personalDetails.phone": phone });
-    if (!employeeData) {
-        return res.status(404).json({ error: "Employee not found" });
-    }
+  const employeeData = await Candidate.findOne({ "personalDetails.phone": phone });
+  if (!employeeData) {
+    return res.status(404).json({ error: "Employee not found" });
+  }
 
-    const monthKey = `${year}-${String(month).padStart(2, "0")}`;
-    const salary = await SalarySummary.findOne({
-        employeeCode: employeeData.code,
-        month: monthKey,
-    });
-    if (!salary) {
-        return res.status(404).json({ error: "Salary slip not found for this month" });
-    }
-    try {
-        const employee = {...employeeData, ...salary}; // Pass employee object from client
+  const monthKey = `${year}-${String(month).padStart(2, "0")}`;
+  const salary = await SalarySummary.findOne({
+    employeeCode: employeeData.code,
+    month: monthKey,
+  });
+  if (!salary) {
+    return res.status(404).json({ error: "Salary slip not found for this month" });
+  }
+  try {
+    const employee = {
+      ...employeeData.toObject(),
+      ...salary.salaryDetails, // flatten salaryDetails fields to root
+    }; // Pass employee object from client
 
-        // Function to format currency
-        const formatAmount = (val) =>
-            isNaN(val) || val === null ? "₹0" : `₹${Math.round(val)}`;
+    // Function to format currency
+    const formatAmount = (val) =>
+      isNaN(val) || val === null ? "₹0" : `₹${Math.round(val)}`;
 
-        // Build HTML with inline CSS (taken from your SalarySlipTemplate.css)
-        const htmlContent = `
+    // Build HTML with inline CSS (taken from your SalarySlipTemplate.css)
+    const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -140,27 +143,27 @@ ${fs.readFileSync(path.join(process.cwd(), "public", "SalarySlipTemplate.css"), 
 </html>
 `;
 
-        // Launch Puppeteer
-        const browser = await puppeteer.launch({ headless: "new" });
-        const page = await browser.newPage();
-        await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+    // Launch Puppeteer
+    const browser = await puppeteer.launch({ headless: "new" });
+    const page = await browser.newPage();
+    await page.setContent(htmlContent, { waitUntil: "networkidle0" });
 
-        const pdfBuffer = await page.pdf({
-            format: "A4",
-            printBackground: true
-        });
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true
+    });
 
-        await browser.close();
+    await browser.close();
 
-        res.set({
-            "Content-Type": "application/pdf",
-            "Content-Disposition": "attachment; filename=salary-slip.pdf",
-        });
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": "attachment; filename=salary-slip.pdf",
+    });
 
-        res.send(pdfBuffer);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error generating PDF" });
-    }
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error generating PDF" });
+  }
 };
 module.exports = { generateSalarySlipPDF };
