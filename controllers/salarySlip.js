@@ -1,25 +1,36 @@
+
 const path = require("path");
-const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-core"); // ✅ use puppeteer-core
 const fs = require("fs");
 const SalarySummary = require("../models/SalarySummary");
 const Candidate = require("../models/Candidate");
+const chromium = require("chrome-aws-lambda"); // ✅ serverless chromium
 const salarySlipStyles = fs.readFileSync(
   path.join(__dirname, "SalarySlipTemplate.css"),
   "utf-8"
 );
-
+// Helper to get month name from month number
+const getMonthName = (monthNumber) => {
+  const date = new Date();
+  date.setMonth(monthNumber - 1);
+  return date.toLocaleString("default", { month: "long" });
+};
 const generateSalarySlipPDF = async (req, res) => {
   const { phone, month, year, employeeCode } = req.query;
 
   if ((!phone && !employeeCode) || !month || !year) {
-    return res.status(400).json({ error: "phone, month, and year are required" });
+    return res
+      .status(400)
+      .json({ error: "phone, month, and year are required" });
   }
+
   let employeeData;
   if (employeeCode) {
     employeeData = await Candidate.findOne({ code: employeeCode });
-  }
-  else {
-    employeeData = await Candidate.findOne({ "personalDetails.phone": phone });
+  } else {
+    employeeData = await Candidate.findOne({
+      "personalDetails.phone": phone,
+    });
   }
   if (!employeeData) {
     return res.status(404).json({ error: "Employee not found" });
@@ -31,19 +42,21 @@ const generateSalarySlipPDF = async (req, res) => {
     month: monthKey,
   });
   if (!salary) {
-    return res.status(404).json({ error: "Salary slip not found for this month" });
+    return res
+      .status(404)
+      .json({ error: "Salary slip not found for this month" });
   }
+
   try {
     const employee = {
       ...employeeData.toObject(),
-      ...salary.salaryDetails, // flatten salaryDetails fields to root
+      ...salary.salaryDetails,
     };
-    // Function to format currency
+
     const formatAmount = (val) =>
       isNaN(val) || val === null ? "₹0" : `₹${Math.round(val)}`;
 
-    // Build HTML with inline CSS (taken from your SalarySlipTemplate.css)
-    const htmlContent = `
+     const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -69,7 +82,7 @@ const generateSalarySlipPDF = async (req, res) => {
   <div class="salary-title-row">
     <div class="salary-title-text">Salary Slip</div>
     <div class="salary-subtitle-text">
-      Salary / Wages Advice for the Month: March 2024
+      Salary / Wages Advice for the Month: ${getMonthName(month)} ${year}
     </div>
   </div>
 
@@ -150,18 +163,28 @@ const generateSalarySlipPDF = async (req, res) => {
 </html>
 `;
 
-    // Launch Puppeteer
-    const browser = await puppeteer.launch({ headless: "new" });
+    // ✅ Launch chromium compatible with Vercel
+    const browser = await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath,
+      headless: chromium.headless,
+    });
+
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: "networkidle0" });
 
     const pdfBuffer = await page.pdf({
       format: "A4",
-      printBackground: true
+      printBackground: true,
     });
 
     await browser.close();
-    const pdfFileName = `${employee.code || "EMP"}_${employee.Name || ""}_${month}_${year}_SalarySlip.pdf`;
+
+    const pdfFileName = `${
+      employee.code || "EMP"
+    }_${employee.Name || ""}_${month}_${year}_SalarySlip.pdf`;
+
     res.set({
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename=${pdfFileName}`,
@@ -170,7 +193,10 @@ const generateSalarySlipPDF = async (req, res) => {
     res.send(pdfBuffer);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error generating PDF", ...error, err:error.message });
+    res
+      .status(500)
+      .json({ message: "Error generating PDF", err: error.message });
   }
 };
+
 module.exports = { generateSalarySlipPDF };
