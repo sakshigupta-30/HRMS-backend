@@ -161,16 +161,16 @@ const generateSalarySlipPDF = async (req, res) => {
     });
 
     await browser.close();
-const pdfFileName = `${employee.code || "EMP"}_${employee.Name || ""}_${month}_${year}_SalarySlip.pdf`;
+    const pdfFileName = `${employee.code || "EMP"}_${employee.Name || ""}_${month}_${year}_SalarySlip.pdf`;
     res.set({
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename==${pdfFileName}`,
+      "Content-Disposition": `attachment; filename=${pdfFileName}`,
     });
 
     res.send(pdfBuffer);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error generating PDF", ...error });
+    res.status(500).json({ message: "Error generating PDF", ...error, err:error.message });
   }
 };
 module.exports = { generateSalarySlipPDF };
