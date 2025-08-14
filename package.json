@@ -19,19 +19,18 @@
   "description": "Backend API for HRMS Dashboard application",
   "dependencies": {
     "bcryptjs": "^3.0.2",
-    "chrome-aws-lambda": "^10.1.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.1.0",
     "express": "^5.1.0",
-    "html-pdf-node": "^1.0.8",
+    "html-pdf-node": "^1.0.7",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.2",
     "multer": "^2.0.2",
     "nodemon": "^3.1.10",
     "pdfmake": "^0.2.20",
     "puppeteer": "^24.16.1",
-    "puppeteer-core": "^24.16.1",
+    "wkhtmltopdf-installer": "^0.3.2",
     "xlsx": "^0.18.5"
   }
 }
