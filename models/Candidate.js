@@ -3,11 +3,10 @@ const mongoose = require('mongoose');
 const candidateSchema = new mongoose.Schema({
   isEmployee: { type: Boolean, default: false },
   empId: { type: String, unique: true, sparse: true },
-  
-  code: { type: String, unique: true, sparse: true }, // Added code field
+  code: { type: String, unique: true, sparse: true },
 
   client: {
-    name: { type: String, default: 'Raymoon' }, // ✅ updated default
+    name: { type: String, default: 'Raymoon' },
     location: { type: String, default: '' }
   },
 
@@ -16,11 +15,14 @@ const candidateSchema = new mongoose.Schema({
     firstName: { type: String, trim: true },
     lastName: { type: String, trim: true },
     email: { type: String, lowercase: true },
-    phone: { type: String, index: true, unique: true},
+    phone: { type: String, index: true, unique: true },
     dateOfBirth: { type: Date },
     gender: { type: String, enum: ['Male', 'Female', 'Other'] },
-    maritalStatus: { type: String, enum: ['Single', 'Married', 'Divorced', 'Widowed'] },
     nationality: { type: String },
+    uanNumber: { type: String }, // Added
+    officialEmail: { type: String }, // Added
+    aadhaarNumber: { type: String, unique: true, sparse: true }, // Added
+    panNumber: { type: String }, // Added
     profileImage: { type: String }
   },
 
@@ -35,16 +37,21 @@ const candidateSchema = new mongoose.Schema({
 
   // Professional Details
   professionalDetails: {
-    designation: { type: String, required: true, enum: ['Picker&Packar', 'SG', 'HK'], trim: true },
-    expectedSalary: { type: Number },
-    currentSalary: { type: Number },
-    availableFrom: { type: Date },
-    employmentType: { type: String, enum: ['Full-time', 'Part-time', 'Contract', 'Internship'] },
-    skills: [{ type: String }],
-    resume: { type: String },
+    designation: { type: String, trim: true }, // Removed required/enum for flexibility
+    department: { type: String }, // Added
+    experience: { type: String }, // Added
+    location: { type: String }, // Added
+    sourceOfHire: { type: String }, // Added
+    title: { type: String }, // Added
+    skillSet: { type: String }, // Added
+    currentSalary: { type: String }, // Changed to String for flexibility
+    highestQualification: { type: String }, // Added
+    additionalInformation: { type: String }, // Added
+    tentativeJoiningDate: { type: Date }, // Added
     agency: { type: String },
+    dateOfJoining: { type: Date }, // Added
 
-    // Added detailed salary nested object
+    // Salary Details (nested)
     salary: {
       basic: { type: Number, default: 0 },
       hra: { type: Number, default: 0 },
@@ -56,9 +63,12 @@ const candidateSchema = new mongoose.Schema({
 
   // Education Details
   education: [{
+    schoolName: { type: String }, // Added
     degree: { type: String },
-    institution: { type: String },
     fieldOfStudy: { type: String },
+    dateOfCompletion: { type: Date }, // Added
+    additionalNotes: { type: String }, // Added
+    institution: { type: String }, // For backward compatibility
     startDate: { type: Date },
     endDate: { type: Date },
     grade: { type: String },
@@ -67,8 +77,12 @@ const candidateSchema = new mongoose.Schema({
 
   // Experience Details
   experience: [{
+    occupation: { type: String }, // Added
     company: { type: String },
-    position: { type: String },
+    summary: { type: String }, // Added
+    duration: { type: String }, // Added
+    currentlyWorkHere: { type: Boolean, default: false }, // Added
+    position: { type: String }, // For backward compatibility
     startDate: { type: Date },
     endDate: { type: Date },
     isCurrentJob: { type: Boolean, default: false },

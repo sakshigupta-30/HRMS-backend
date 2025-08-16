@@ -314,3 +314,22 @@ exports.getEmployees = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch employees' });
   }
 };
+// Check Aadhaar uniqueness controller
+exports.checkAadhar = async (req, res) => {
+  try {
+    const { aadharNo:aadhaarNumber } = req.params;
+    if (!aadhaarNumber || aadhaarNumber.length !== 12) {
+      return res.status(400).json({ error: "Invalid Aadhaar number." });
+    }
+
+    const existing = await Candidate.findOne({ "personalDetails.aadhaarNumber": aadhaarNumber });
+    if (existing) {
+      return res.status(200).json({ exists: true });
+    } else {
+      return res.status(200).json({ exists: false });
+    }
+  } catch (error) {
+    console.error('Error checking Aadhaar:', error);
+    res.status(500).json({ error: 'Failed to check Aadhaar.' });
+  }
+};

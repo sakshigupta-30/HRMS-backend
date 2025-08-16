@@ -10,6 +10,7 @@ const {
   updateCandidateStatus,
   getEmployees,
   bulkUploadCandidates,
+  checkAadhar,
 } = require('../controllers/candidateController');
 const { protect, authorize } = require('../middleware/auth');
 
@@ -24,6 +25,7 @@ router.use(protect);
 // Special routes before param-based routes
 router.get('/employees', getEmployees); // must come before /:id
 router.put('/:id/status', updateCandidateStatus);
+router.get('/check-aadhar/:aadharNo', checkAadhar);
 
 // Bulk upload route - accepts single file upload with key 'file'
 router.post('/bulk-upload', upload.single('file'), bulkUploadCandidates);
