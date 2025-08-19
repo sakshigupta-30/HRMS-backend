@@ -52,14 +52,20 @@ const candidateSchema = new mongoose.Schema({
     dateOfJoining: { type: Date }, // Added
 
     // Salary Details (nested)
-    salary: {
+    
+    
+  },
+  salary: {
       basic: { type: Number, default: 0 },
       hra: { type: Number, default: 0 },
       retention: { type: Number, default: 0 },
       otherAllowances: { type: Number, default: 0 },
       actualSalary: { type: Number, default: 0 },
     },
-  },
+  bankDetails: {
+      accountNumber: { type: String},
+      ifsc: { type: String },
+    },
 
   // Education Details
   education: [{

@@ -2,6 +2,7 @@ const express = require('express');
 const {
   createAdvancePayment,
   getAdvancePayments,
+  getAllAdvancePaymentsByCode,
 } = require('../controllers/advancedPaymentController');
 const { protect } = require('../middleware/auth');
 
@@ -12,5 +13,6 @@ router.post('/', protect , createAdvancePayment);
 
 // Route to get all advance payments
 router.get('/', protect, getAdvancePayments);
+router.get('/all', protect, getAllAdvancePaymentsByCode);
 
 module.exports = router;

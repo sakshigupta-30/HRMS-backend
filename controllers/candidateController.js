@@ -73,13 +73,18 @@ exports.bulkUploadCandidates = async (req, res) => {
           designation,
           agency,
           availableFrom: availableFromDate,
-          salary: {
-            basic: parseFloat(row['Basic']) || 0,
-            hra: parseFloat(row['HRA']) || 0,
-            retention: parseFloat(row['4 Hrs Retention']) || 0,
-            otherAllowances: parseFloat(row['Other Allowances']) || 0,
-            actualSalary: parseFloat(row['Actual Salary']) || 0,
-          },
+
+        },
+        salary: {
+          basic: parseFloat(row['Basic']) || 0,
+          hra: parseFloat(row['HRA']) || 0,
+          retention: parseFloat(row['4 Hrs Retention']) || 0,
+          otherAllowances: parseFloat(row['Other Allowances']) || 0,
+          actualSalary: parseFloat(row['Actual Salary']) || 0,
+        },
+        bankDetails: {
+          accountNumber: row['Account Number'] || '',
+          ifsc: row['Ifsc'] || ''
         },
         client: {
           name: row['Client Name'] || '',
@@ -135,7 +140,7 @@ exports.addCandidate = async (req, res) => {
     if (existing) {
       return res.status(400).json({ error: 'A candidate with this phone number already exists.' });
     }
-    const candidate = new Candidate({ ...data, professionalDetails: { ...data.professionalDetails, agency: data.professionalDetails.agency } });
+    const candidate = new Candidate(data);
     await candidate.save();
 
     res.status(201).json({ message: 'Candidate added successfully', candidate });
@@ -317,7 +322,7 @@ exports.getEmployees = async (req, res) => {
 // Check Aadhaar uniqueness controller
 exports.checkAadhar = async (req, res) => {
   try {
-    const { aadharNo:aadhaarNumber } = req.params;
+    const { aadharNo: aadhaarNumber } = req.params;
     if (!aadhaarNumber || aadhaarNumber.length !== 12) {
       return res.status(400).json({ error: "Invalid Aadhaar number." });
     }

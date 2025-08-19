@@ -4,6 +4,7 @@ const AdvancePaymentSchema = new mongoose.Schema(
   {
     worker: { type: mongoose.Schema.Types.ObjectId, ref: "Candidate", required: true },
     year: { type: Number, required: true },
+    employeeCode: { type: String, required: true, unique:true }, // Format: "YYYY-MM"
     month: { type: String, required: true }, // Format: "YYYY-MM"
     amount: { type: Number, required: true, min: 0 },
     comments: { type: String, default: "" },

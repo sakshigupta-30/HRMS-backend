@@ -5,7 +5,7 @@ const Candidate = require('../models/Candidate');
 // Create a new advance payment
 exports.createAdvancePayment = async (req, res) => {
   try {
-    const { employeeCode, year, month, amount, comments } = req.body;
+    const { employeeCode, year, worker, month, amount, comments } = req.body;
     if (!employeeCode || !year || !month || !amount) {
       return res.status(400).json({ error: 'employeeCode, year, month, and amount are required.' });
     }
@@ -26,6 +26,7 @@ exports.createAdvancePayment = async (req, res) => {
     // Save advance payment
     const advance = new AdvancePayment({
       employeeCode,
+      worker,
       year,
       month,
       amount,
@@ -50,6 +51,16 @@ exports.getAdvancePayments = async (req, res) => {
     if (month) filter.month = month;
 
     const advances = await AdvancePayment.find(filter).sort({ createdAt: -1 });
+    res.status(200).json(advances);
+  } catch (error) {
+    console.error('Error fetching advances:', error);
+    res.status(500).json({ error: 'Failed to fetch advance payments.' });
+  }
+};
+exports.getAllAdvancePaymentsByCode = async (req, res) => {
+  try {
+    const { employeeCode} = req.query;
+    const advances = await AdvancePayment.find({employeeCode}).sort({ createdAt: -1 });
     res.status(200).json(advances);
   } catch (error) {
     console.error('Error fetching advances:', error);
