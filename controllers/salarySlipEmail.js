@@ -11,7 +11,20 @@ const salarySlipStyles = fs.readFileSync(
     path.join(__dirname, "SalarySlipTemplate.css"),
     "utf-8"
 );
+function getMonthNumber(monthName) {
+  const months = [
+    "january", "february", "march", "april", "may", "june",
+    "july", "august", "september", "october", "november", "december"
+  ];
 
+  const index = months.indexOf(monthName.toLowerCase());
+  if (index === -1) {
+    throw new Error("Invalid month name");
+  }
+
+  // Add 1 because array is 0-based, then pad with leading zero
+  return String(index + 1).padStart(2, "0");
+}
 const sendEmailForSalarySlipPDF = async (req, res) => {
     const { phone, month, year, employeeCode } = req.query;
 
@@ -28,7 +41,7 @@ const sendEmailForSalarySlipPDF = async (req, res) => {
     if (!employeeData) {
         return res.status(404).json({ error: "Employee not found" });
     }
-    const monthKey = `${year}-${String("08").padStart(2, "0")}`;
+    const monthKey = `${year}-${String(getMonthNumber(month)).padStart(2, "0")}`;
     const salary = await SalarySummary.findOne({
         employeeCode: employeeData.code,
         month: monthKey,
