@@ -73,7 +73,7 @@ exports.bulkUploadCandidates = async (req, res) => {
           designation,
           agency,
           availableFrom: availableFromDate,
-
+          dateOfJoining: availableFromDate,
         },
         salary: {
           basic: parseFloat(row['Basic']) || 0,

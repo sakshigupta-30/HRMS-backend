@@ -7,6 +7,8 @@ dotenv.config();
 const app = express();
 
 const cors = require('cors');
+const { sendOfferLetter } = require('./routes/offerletter');
+const { sendEmailOfferLetter } = require('./routes/emailOfferletter');
 
 const allowedOrigins = [
   'http://localhost:3000',
@@ -31,8 +33,11 @@ app.use(express.json());
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/candidates', require('./routes/candidates'));
 app.use('/api/salarysummary', require('./routes/salarySlipRoutes'));
-app.use('/api/salarylip', require('./routes/salarySlip'));
+app.use('/api/salary-slip', require('./routes/salarySlip'));
 app.use('/api/advance-pay', require('./routes/advancePayment'));
+app.use('/api/other-deductions', require('./routes/otherDeductions'));
+app.use('/generate-offer-letter', sendOfferLetter);
+app.use('/send-offer-letter', sendEmailOfferLetter);
 // app.use('/api/salary-slips', require('./routes/salarySlipRoutes'));
 
 app.get("/", (req, res) => {

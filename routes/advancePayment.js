@@ -3,6 +3,7 @@ const {
   createAdvancePayment,
   getAdvancePayments,
   getAllAdvancePaymentsByCode,
+  getAllAdvancePaymentsByMonth,
 } = require('../controllers/advancedPaymentController');
 const { protect } = require('../middleware/auth');
 
@@ -14,5 +15,6 @@ router.post('/', protect , createAdvancePayment);
 // Route to get all advance payments
 router.get('/', protect, getAdvancePayments);
 router.get('/all', protect, getAllAdvancePaymentsByCode);
+router.get('/month', protect, getAllAdvancePaymentsByMonth);
 
 module.exports = router;

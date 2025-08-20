@@ -1,9 +1,10 @@
-const AdvancePayment = require('../models/AdvancedPayment');
+
 const SalarySummary = require('../models/SalarySummary');
 const Candidate = require('../models/Candidate');
+const otherDeductions = require('../models/otherDeductions');
 
 // Create a new advance payment
-exports.createAdvancePayment = async (req, res) => {
+exports.createOtherDeductions = async (req, res) => {
   try {
     const { employeeCode, year, worker, month, amount, comments } = req.body;
     if (!employeeCode || !year || !month || !amount) {
@@ -24,7 +25,7 @@ exports.createAdvancePayment = async (req, res) => {
     }
 
     // Save advance payment
-    const advance = new AdvancePayment({
+    const advance = new otherDeductions({
       employeeCode,
       worker,
       year,
@@ -42,7 +43,7 @@ exports.createAdvancePayment = async (req, res) => {
 };
 
 // Get all advances for an employee (optionally filter by year/month)
-exports.getAdvancePayments = async (req, res) => {
+exports.getOtherDeductions = async (req, res) => {
   try {
     const { employeeCode, year, month } = req.query;
     const filter = {};
@@ -50,27 +51,27 @@ exports.getAdvancePayments = async (req, res) => {
     if (year) filter.year = year;
     if (month) filter.month = month;
 
-    const advances = await AdvancePayment.find(filter).sort({ createdAt: -1 });
+    const advances = await otherDeductions.find(filter).sort({ createdAt: -1 });
     res.status(200).json(advances);
   } catch (error) {
     console.error('Error fetching advances:', error);
     res.status(500).json({ error: 'Failed to fetch advance payments.' });
   }
 };
-exports.getAllAdvancePaymentsByCode = async (req, res) => {
+exports.getAllOtherDeductionsByCode = async (req, res) => {
   try {
     const { employeeCode} = req.query;
-    const advances = await AdvancePayment.find({employeeCode}).sort({ createdAt: -1 });
+    const advances = await otherDeductions.find({employeeCode}).sort({ createdAt: -1 });
     res.status(200).json(advances);
   } catch (error) {
     console.error('Error fetching advances:', error);
     res.status(500).json({ error: 'Failed to fetch advance payments.' });
   }
 };
-exports.getAllAdvancePaymentsByMonth = async (req, res) => {
+exports.getAllOtherDeductionsByMonth = async (req, res) => {
   try {
     const { employeeCode,month} = req.query;
-    const advances = await AdvancePayment.findOne({employeeCode, month});
+    const advances = await otherDeductions.findOne({employeeCode, month});
     res.status(200).json(advances);
   } catch (error) {
     console.error('Error fetching advances:', error);
@@ -79,10 +80,10 @@ exports.getAllAdvancePaymentsByMonth = async (req, res) => {
 };
 
 // Delete advance payment
-exports.deleteAdvancePayment = async (req, res) => {
+exports.deleteOtherDeductions = async (req, res) => {
   try {
     const { id } = req.params;
-    const advance = await AdvancePayment.findByIdAndDelete(id);
+    const advance = await otherDeductions.findByIdAndDelete(id);
     if (!advance) {
       return res.status(404).json({ error: 'Advance payment not found.' });
     }
