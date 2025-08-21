@@ -58,17 +58,17 @@ async function generateOfferLetter({ name, designation, date, joiningDate, salar
         color: rgb(1, 1, 1), // white
     });
     // ------- PAGE 1 -------
-    firstPage.drawText(date||"N/A", { x: 80, y: 694, size: fontSize, font }); // "Date: _____"
-    firstPage.drawText(name||"N/A", { x: 80, y: 679, size: fontSize, fontBold }); // "Dear: _______"
-    firstPage.drawText(designation||"N/A", { x: 262, y: 645, size: fontSize + 1, robotoMedium }); // "position of _____"
-    firstPage.drawText(joiningDate||"N/A", { x: 249, y: 583, size: fontSize + 1, robotoMedium }); // "date of appointment"
-    firstPage.drawText(`${salary||"N/A"}`, { x: 238, y: 540, size: fontSize + 1, robotoMedium }); // "monthly NTH"
+    firstPage.drawText(date || "N/A", { x: 80, y: 694, size: fontSize, font }); // "Date: _____"
+    firstPage.drawText(name || "N/A", { x: 80, y: 679, size: fontSize, fontBold }); // "Dear: _______"
+    firstPage.drawText(designation || "N/A", { x: 262, y: 645, size: fontSize + 1, robotoMedium }); // "position of _____"
+    firstPage.drawText(joiningDate || "N/A", { x: 249, y: 583, size: fontSize + 1, robotoMedium }); // "date of appointment"
+    firstPage.drawText(`${salary || "N/A"}`, { x: 238, y: 540, size: fontSize + 1, robotoMedium }); // "monthly NTH"
 
     // ------- PAGE 2 -------
-    secondPage.drawText(name||"N/A", { x: 76, y: 335, size: fontSize, font }); // "Name: ______"
+    secondPage.drawText(name || "N/A", { x: 76, y: 335, size: fontSize, font }); // "Name: ______"
     //   secondPage.drawText("Raymoon Service Pvt Ltd (Gurgaon)", { x: 130, y: 360, size: fontSize, font }); // "Location"
-    secondPage.drawText(joiningDate||"N/A", { x: 112, y: 309, size: fontSize, font }); // "Date of Joining"
-    secondPage.drawText(designation||"N/A", { x: 100, y: 295, size: fontSize, font }); // "Designation"
+    secondPage.drawText(joiningDate || "N/A", { x: 112, y: 309, size: fontSize, font }); // "Date of Joining"
+    secondPage.drawText(designation || "N/A", { x: 100, y: 295, size: fontSize, font }); // "Designation"
 
     const pdfBytes = await pdfDoc.save();
     return pdfBytes;
@@ -77,16 +77,18 @@ async function generateOfferLetter({ name, designation, date, joiningDate, salar
 exports.sendOfferLetter = async (req, res) => {
     try {
         const { employeeCode } = req.body;
-        const employee = await Candidate.findOne({ code:employeeCode });
+        const employee = await Candidate.findOne({ code: employeeCode }).lean();
         if (!employee) {
             return res.status(404).send("Employee not found");
         }
-        const name = employee.personalDetails.firstName+employee.personalDetails.lastName;
+        const name = employee.personalDetails.firstName + " " + employee.personalDetails.lastName;
         const designation = employee.professionalDetails.designation;
         const date = new Date().toLocaleDateString();
-        const joiningDate = employee.professionalDetails.dateOfJoining||employee.professionalDetails.availableFromDate || new Date().toLocaleDateString();
-         const salary = employee.professionalDetails.salary.actualSalary?.toLocaleString("en-IN")||employee.salary.actualSalary?.toLocaleString("en-IN") || "20,000";
-       
+        console.log(Object.keys(employee.professionalDetails));
+        console.log(JSON.stringify(employee.professionalDetails, null, 2));
+        const joiningDate = employee.professionalDetails.dateOfJoining || employee.professionalDetails.availableFromDate || new Date().toLocaleDateString();
+        const salary = employee.professionalDetails?.salary?.actualSalary?.toLocaleString("en-IN") || employee.salary?.actualSalary?.toLocaleString("en-IN") || "20,000";
+        // console.log(employee.professionalDetails, employee.professionalDetails?.salary, employee.professionalDetails?.salary?.actualSalary)
         const pdfBytes = await generateOfferLetter({
             name,
             designation,
