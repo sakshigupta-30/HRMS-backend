@@ -107,7 +107,7 @@ const sendEmailForSalarySlipPDF = async (req, res) => {
     <div class="salary-emp-column">
       <div>Emp Code: ${employee.code}</div>
       <div>Emp Name: ${employee.Name}</div>
-      <div>F/H Name: -</div>
+      <div>F/H Name: ${employee.fatherName}</div>
     </div>
     <div class="salary-emp-column">
     <div>Designation: ${employee.Designation}</div>

@@ -3,6 +3,9 @@ const puppeteer = require("puppeteer");
 const fs = require("fs");
 const SalarySummary = require("../models/SalarySummary");
 const Candidate = require("../models/Candidate");
+const AdvancedPayment = require("../models/AdvancedPayment");
+const otherDeductions = require("../models/otherDeductions");
+
 const salarySlipStyles = fs.readFileSync(
   path.join(__dirname, "SalarySlipTemplate.css"),
   "utf-8"
@@ -12,13 +15,13 @@ const generateSalarySlipPDF = async (req, res) => {
   const { phone, month, year, employeeCode } = req.query;
 
   if ((!phone && !employeeCode) || !month || !year) {
-    return res.status(400).json({ error: "phone, month, and year are required" });
+    return res.status(400).json({ error: "phone/employeeCode, month, and year are required" });
   }
+
   let employeeData;
   if (employeeCode) {
     employeeData = await Candidate.findOne({ code: employeeCode });
-  }
-  else {
+  } else {
     employeeData = await Candidate.findOne({ "personalDetails.phone": phone });
   }
   if (!employeeData) {
@@ -30,19 +33,32 @@ const generateSalarySlipPDF = async (req, res) => {
     employeeCode: employeeData.code,
     month: monthKey,
   });
+  const advanced = await AdvancedPayment.findOne({ employeeCode: employeeData.code, month: monthKey });
+  const otherDeduction = await otherDeductions.findOne({ employeeCode: employeeData.code, month: monthKey });
+
   if (!salary) {
     return res.status(404).json({ error: "Salary slip not found for this month" });
   }
+
   try {
     const employee = {
       ...employeeData.toObject(),
       ...salary.salaryDetails, // flatten salaryDetails fields to root
     };
+
+    // calculate total salary after deductions
+    let totalSalary = Number(employee["Net Pay"]);
+    if (advanced || otherDeduction) {
+      totalSalary =
+        Number(employee["Net Pay"]) -
+        Number(advanced?.amount || 0) -
+        Number(otherDeduction?.amount || 0);
+    }
     // Function to format currency
     const formatAmount = (val) =>
       isNaN(val) || val === null ? "₹0" : `₹${Math.round(val)}`;
 
-    // Build HTML with inline CSS (taken from your SalarySlipTemplate.css)
+    // Build HTML with deductions included
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -69,7 +85,7 @@ const generateSalarySlipPDF = async (req, res) => {
   <div class="salary-title-row">
     <div class="salary-title-text">Salary Slip</div>
     <div class="salary-subtitle-text">
-      Salary / Wages Advice for the Month: March 2024
+      Salary / Wages Advice for the Month: ${month} ${year}
     </div>
   </div>
 
@@ -78,13 +94,13 @@ const generateSalarySlipPDF = async (req, res) => {
     <div class="salary-emp-column">
       <div>Emp Code: ${employee.code}</div>
       <div>Emp Name: ${employee.Name}</div>
-      <div>F/H Name: -</div>
+      <div>F/H Name: ${employee.personalDetails.fatherName}</div>
     </div>
     <div class="salary-emp-column">
-    <div>Designation: ${employee.Designation}</div>
-    <div>Location: Gurgaon-FC5</div>
-    <div>DOJ: ${employee.availableFrom ? employee.availableFrom.toISOString().slice(0, 10) : "-"}</div>
-  </div>
+      <div>Designation: ${employee.Designation}</div>
+      <div>Location: Gurgaon-FC5</div>
+      <div>DOJ: ${employee.availableFrom ? employee.availableFrom.toISOString().slice(0, 10) : "-"}</div>
+    </div>
     <div class="salary-emp-column">
       <div>PF / UAN No: ${employee["PF/UAN"] ?? "-"}</div>
       <div>ESIC No: ${employee["ESIC No"] ?? "-"}</div>
@@ -119,8 +135,9 @@ const generateSalarySlipPDF = async (req, res) => {
       <div>PF (12%): ${formatAmount(employee["Emp PF"])}</div>
       <div>ESI (0.75%): ${formatAmount(employee["Emp ESI"])}</div>
       <div>LWF: ${formatAmount(employee["LWF"])}</div>
-      <div>Other Deductions: ${formatAmount(employee["Other Deductions"] ?? 0)}</div>
-      <strong>Total Deduction: ${formatAmount(employee["Total Deductions"])}</strong>
+      <div>Other Deductions: ${formatAmount(otherDeduction?.amount ?? 0)}</div>
+      <div>Advanced Paid: ${formatAmount(advanced?.amount ?? 0)}</div>
+      <strong>Total Deduction: ${formatAmount(Number(employee["Total Deductions"]) + Number(otherDeduction?.amount || 0) + Number(advanced?.amount || 0))}</strong>
     </div>
 
     <div class="main-grid-column">
@@ -133,7 +150,7 @@ const generateSalarySlipPDF = async (req, res) => {
     <div class="main-grid-column">
       <strong>Payment & Signature</strong>
       <div>Mode of Payment: ${employee["Payment Mode"] ?? "NEFT"}</div>
-      <div>Net Pay: ${formatAmount(employee["Net Pay"])}</div>
+      <div>Net Pay: ${formatAmount(totalSalary)}</div>
       <div class="signature-box">Signature of Employee</div>
       <div class="salary-note">This is a computer-generated slip.</div>
     </div>
@@ -142,8 +159,8 @@ const generateSalarySlipPDF = async (req, res) => {
   <!-- Footer -->
   <div class="salary-footer-row">
     <div class="footer-item">Gross: ${formatAmount(employee["Earned Gross Pay"])}</div>
-    <div class="footer-item-deductions">Total Deduction: ${formatAmount(employee["Total Deductions"])}</div>
-    <div class="footer-net-salary">Net Salary: ${formatAmount(employee["Net Pay"])}</div>
+    <div class="footer-item-deductions">Total Deduction: ${formatAmount(Number(employee["Total Deductions"]) + Number(otherDeduction?.amount || 0) + Number(advanced?.amount || 0))}</div>
+    <div class="footer-net-salary">Net Salary: ${formatAmount(totalSalary)}</div>
   </div>
 </div>
 </body>
@@ -170,7 +187,8 @@ const generateSalarySlipPDF = async (req, res) => {
     res.send(pdfBuffer);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error generating PDF", ...error, err:error.message });
+    res.status(500).json({ message: "Error generating PDF", err: error.message });
   }
 };
+
 module.exports = { generateSalarySlipPDF };
